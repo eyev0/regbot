@@ -8,7 +8,7 @@ from aiogram.utils.markdown import bold, text
 
 from bot import dp
 from config import file, admin_id
-from utils import States
+from utils import States, User, Payment
 
 
 @dp.message_handler(lambda m: m.from_user.id != admin_id,
@@ -17,33 +17,15 @@ from utils import States
 async def process_start_command(message: types.Message):
     u_id = message.from_user.id
 
-    with shelve.open(filename=file, writeback=True) as db:
-        user = db.get(str(u_id))
-        if user is None:
-            db[str(u_id)] = {
-                'username': message.from_user.username,
-                'name_surname': '',
-                'reg_passed': False,
-                'payment_info': {},
-            }
+    with shelve.open(filename=file) as db:
+        user = db.get(str(u_id), User(user_id=u_id,
+                                      username=message.from_user.username))
+        if user.reg_passed:
+            await message.reply(bold('Вы уже зарегистрировались! Ура!'),
+                                parse_mode=ParseMode.MARKDOWN)
+            return
         else:
-            if user.get('reg_passed', False):
-                await message.reply(bold('Вы уже зарегистрировались! Ура!'),
-                                    parse_mode=ParseMode.MARKDOWN)
-                return
-            else:
-                state = dp.current_state(user=message.from_user.id)
-                if await state.get_state() == States.STATE_1[0]:
-                    await message.reply('Напишите мне, пожалуйста, свою фамилию и имя!',
-                                        reply=False)
-                    return
-                elif await state.get_state() == States.STATE_2[0]:
-                    await message.reply('Осталось только прислать квитанцию или абонемент! '
-                                        'Я верю в тебя!',
-                                        reply=False)
-                    return
-                else:
-                    pass
+            db[str(u_id)] = user
 
     state = dp.current_state(user=u_id)
     await state.set_state(States.all()[1])
@@ -54,7 +36,7 @@ async def process_start_command(message: types.Message):
                         '  2. Пришлите файл или фото с чеком об оплате '
                         'или фото твоего абонемента МСДК'
                         '(после регистрации я напишу вам лично, как и что отметить в абонементе)\n\n'
-                        '  **',
+                        ' ',
                         parse_mode=ParseMode.MARKDOWN,
                         reply=False)
 
@@ -66,8 +48,8 @@ async def process_start_command(message: types.Message):
 async def save_name_surname(message: types.Message):
     u_id = message.from_user.id
     with shelve.open(filename=file) as db:
-        user = db[str(u_id)]
-        user['name_surname'] = message.text
+        user: User = db[str(u_id)]
+        user.name_surname = message.text
         db[str(u_id)] = user
 
     state = dp.current_state(user=message.from_user.id)
@@ -94,26 +76,19 @@ async def save_payment(message: types.Message, payment_type=None):
     u_id = message.from_user.id
 
     with shelve.open(filename=file) as db:
-        user = db[str(u_id)]
+        user: User = db[str(u_id)]
         if payment_type == 'photo':
-            user['payment_info'] = {
-                'type': 'photo',
-                'id': message.photo[-1].file_id
-            }
+            user.payment = Payment(payment_type, message.photo[-1].file_id)
         else:
-            # document
-            user['payment_info'] = {
-                'type': 'document',
-                'id': message.document.file_id
-            }
-        user['reg_passed'] = True
+            user.payment = Payment(payment_type, message.document.file_id)
+        user.reg_passed = True
         db[str(u_id)] = user
 
     state = dp.current_state(user=message.from_user.id)
     await state.set_state(States.all()[3])
 
     await message.reply('Спасибо! Вы успешно зарегистрировались. Если вас еще нет в общем канале, вот ссылка:\n'
-                        '*тут ссылка на канал*', reply=False)
+                        'https://t.me/joinchat/AAAAAFK5EtZ1L7eNAq99Yw', reply=False)
 
 
 @dp.message_handler(lambda m: m.from_user.id != admin_id,
@@ -121,7 +96,7 @@ async def save_payment(message: types.Message, payment_type=None):
                     content_types=ContentType.ANY)
 async def done(message: types.Message):
     await message.reply(text(emojize('На этом всё, дорогой друг! Спасибо, что ты с нами! '
-                                     ':smirk: :new_moon_with_face:')),
+                                     ':heart: :new_moon_with_face:')),
                         reply=False)
 
 
@@ -130,9 +105,9 @@ async def done(message: types.Message):
 async def incorrect_input(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
     if await state.get_state() == States.STATE_1[0]:
-        t = 'Напишите мне, пожалуйста, свою фамилию и имя!'
+        t = emojize('Напишите мне, пожалуйста, свою фамилию и имя :)')
     elif await state.get_state() == States.STATE_2[0]:
-        t = 'Осталось только прислать квитанцию или абонемент! Я верю в тебя!',
+        t = 'Осталось только прислать квитанцию или абонемент! Я верю в тебя! :)'
     else:
         assert False
     await message.reply(t,

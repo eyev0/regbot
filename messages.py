@@ -1,21 +1,12 @@
-from utils import States
-
-
-help_message = 'Для того, чтобы изменить текущее состояние пользователя, ' \
-               f'отправь команду "/setstate x", где x - число от 0 до {len(States.all()) - 1}.\n' \
-               'Чтобы сбросить текущее состояние, отправь "/setstate" без аргументов.'
-
-start_message = 'Привет! Это демонстрация работы FSM.\n' + help_message
-invalid_key_message = 'Ключ "{key}" не подходит.\n' + help_message
-state_change_success_message = 'Текущее состояние успешно изменено'
-state_reset_message = 'Состояние успешно сброшено'
-current_state_message = 'Текущее состояние - "{current_state}", что удовлетворяет условию "один из {states}"'
+admin_routine_h_message = 'Привет, admin! ' \
+                          'Смотри, сколько людей зарегалось!\n\n' \
+                          'Регистраций: {reg_count} \n\n' \
+                          '`___________________________________________`\n\n'
 
 MESSAGES = {
-    'start': start_message,
-    'help': help_message,
-    'invalid_name': invalid_key_message,
-    'state_change': state_change_success_message,
-    'state_reset': state_reset_message,
-    'current_state': current_state_message,
+    'admin_routine_h_message': admin_routine_h_message,
 }
+
+
+def msg_header_admin(db_size=0):
+    return MESSAGES['admin_routine_h_message'].format(reg_count=str(db_size))

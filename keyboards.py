@@ -2,12 +2,17 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 
 
-button1 = KeyboardButton('<')
-button2 = KeyboardButton('>')
+button1 = InlineKeyboardButton('<', callback_data='back')
+button2 = InlineKeyboardButton('>', callback_data='forward')
 
-keyboard = ReplyKeyboardMarkup().row(
+keyboard = InlineKeyboardMarkup().row(
     button1, button2
 )
+#
+# keyboard = ReplyKeyboardMarkup().row(
+#     button1, button2
+# )
+# reply_markup=ReplyKeyboardRemove(),
 
 
 ####################
