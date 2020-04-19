@@ -40,6 +40,14 @@ class User(object):
         self.payment = payment
         self.time_created = str(datetime.utcnow())
 
+    def __repr__(self):
+        return f'User(user_id={self.user_id}, ' \
+               f'username={self.username}, ' \
+               f'name_surname={self.name_surname}, ' \
+               f'reg_passed={self.reg_passed}, ' \
+               f'payment={self.payment}, ' \
+               f'time_created={self.time_created})'
+
 
 class UserDbAccessObject(object):
 

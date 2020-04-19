@@ -1,22 +1,23 @@
 import shelve
 
 from aiogram import types
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaDocument
+from aiogram.types import ParseMode, InputMediaPhoto, InputMediaDocument, InputFile
+from aiogram.utils.exceptions import MessageNotModified
 
-from bot import dp, bot
-from config import admin_id, file
+from bot import dp, bot, logging
+from config import admin_ids, file, RANDOM_KITTEN_JPG
 from keyboards import keyboard
-from messages import msg_header_admin
-from utils import UserDbAccessObject
+from messages import msg_header_admin, msg_body_admin
+from utils import UserDbAccessObject, User
 
-dbaccess = UserDbAccessObject()
+db_access = UserDbAccessObject()
 
 
-@dp.message_handler(lambda m: m.from_user.id == admin_id,
+@dp.message_handler(lambda m: m.from_user.id in admin_ids,
                     state='*',
                     commands=['start'])
 async def process_start_command(message: types.Message):
-    size = dbaccess.size()
+    size = db_access.size()
 
     if size == 0:
         await message.reply(msg_header_admin(size) +
@@ -25,61 +26,73 @@ async def process_start_command(message: types.Message):
                             reply=False)
         return
 
-    user = dbaccess.current()
+    user = db_access.current()
     await message.reply(msg_header_admin(size) +
-                        f'id: {user.user_id}\n'
-                        f'username: @{user.username}\n'
-                        f'Фамилия и имя: {user.name_surname}\n',
+                        msg_body_admin(user),
                         parse_mode=ParseMode.MARKDOWN,
                         reply=False)
-    if user.payment.file_type == 'photo':
-        await bot.send_photo(message.chat.id,
-                             photo=user.payment.file_id,
-                             reply_markup=keyboard)
+    if user.payment is not None:
+        if user.payment.file_type == 'photo':
+            await bot.send_photo(message.chat.id,
+                                 photo=user.payment.file_id,
+                                 reply_markup=keyboard)
+        else:
+            await bot.send_document(message.chat.id,
+                                    document=user.payment.file_id,
+                                    reply_markup=keyboard)
     else:
         await bot.send_document(message.chat.id,
-                                document=user.payment.file_id,
+                                document=InputFile.from_url(RANDOM_KITTEN_JPG,
+                                                            'Ой! Ещё нет информации о платеже!'),
                                 reply_markup=keyboard)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'back')
 async def process_callback_button_prev(callback_query: types.CallbackQuery):
-    await process_callback_button(callback_query, dbaccess.prev)
+    await process_callback_button(callback_query, db_access.prev)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'forward')
 async def process_callback_button_next(callback_query: types.CallbackQuery):
-    await process_callback_button(callback_query, dbaccess.next)
+    await process_callback_button(callback_query, db_access.next)
 
 
-async def process_callback_button(callback_query: types.CallbackQuery,
-                                  get_new_user_method):
-    size = dbaccess.size()
-    curr_user = dbaccess.current()
-    user = get_new_user_method()
-
-    await bot.answer_callback_query(callback_query.id)
-
-    if user is None:
-        return
-
-    if curr_user.user_id != user.user_id:
-        await bot.edit_message_text(msg_header_admin(size) +
-                                    f'id: {user.user_id}\n'
-                                    f'username: @{user.username}\n'
-                                    f'Фамилия и имя: {user.name_surname}\n',
-                                    callback_query.message.chat.id,
-                                    callback_query.message.message_id - 1,
-                                    parse_mode=ParseMode.MARKDOWN)
-
+def get_user_input_media_obj(user: User):
+    if user.payment is not None:
         if user.payment.file_type == 'photo':
             media = InputMediaPhoto(user.payment.file_id)
         else:
             media = InputMediaDocument(user.payment.file_id)
+    else:
+        media = InputMediaDocument(InputFile.from_url(RANDOM_KITTEN_JPG,
+                                                      'Ой! Ещё нет информации о платеже!'))
+    return media
+
+
+async def process_callback_button(callback_query: types.CallbackQuery,
+                                  get_new_user_method):
+    await bot.answer_callback_query(callback_query.id)
+
+    size = db_access.size()
+    user: User = get_new_user_method()
+    assert user is not None
+    media = get_user_input_media_obj(user)
+
+    try:
+        await bot.edit_message_text(msg_header_admin(size) +
+                                    msg_body_admin(user),
+                                    callback_query.message.chat.id,
+                                    callback_query.message.message_id - 1,
+                                    parse_mode=ParseMode.MARKDOWN)
+    except MessageNotModified:
+        logging.info(f'Message {callback_query.message.message_id - 1} is not modified')
+    try:
         await callback_query.message.edit_media(media, reply_markup=keyboard)
+    except MessageNotModified:
+        logging.info(f'Message {callback_query.message.message_id} is not modified')
 
 
-@dp.message_handler(lambda m: m.from_user.id == admin_id,
+@dp.message_handler(lambda m: m.from_user.id in admin_ids,
                     state='*',
                     commands=['delete'])
 async def process_delete_command(message: types.Message):

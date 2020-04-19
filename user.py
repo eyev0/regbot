@@ -6,12 +6,12 @@ from aiogram.types import ParseMode, ContentType
 from aiogram.utils.emoji import emojize
 from aiogram.utils.markdown import bold, text
 
-from bot import dp
-from config import file, admin_id
+from bot import dp, logging
+from config import file, admin_ids
 from utils import States, User, Payment
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     state='*',
                     commands=['start'])
 async def process_start_command(message: types.Message):
@@ -27,6 +27,7 @@ async def process_start_command(message: types.Message):
         else:
             db[str(u_id)] = user
 
+    logging.info(f'user created: {user}')
     state = dp.current_state(user=u_id)
     await state.set_state(States.all()[1])
 
@@ -40,7 +41,7 @@ async def process_start_command(message: types.Message):
                         reply=False)
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     #
                     # filters.Regexp(regexp='[a-zA-Zа-яА-Я\']+ [a-zA-Zа-яА-Я\']+'),
                     state=States.STATE_1,
@@ -58,14 +59,14 @@ async def save_name_surname(message: types.Message):
     await message.reply('Класс! Теперь пришлите, пожалуйста, квитанцию или фото абонемента.', reply=False)
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     state=States.STATE_2,
                     content_types=[ContentType.PHOTO])
 async def save_payment_photo(message: types.Message):
     await save_payment(message, payment_type='photo')
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     state=States.STATE_2,
                     content_types=[ContentType.DOCUMENT])
 async def save_payment_document(message: types.Message):
@@ -91,7 +92,7 @@ async def save_payment(message: types.Message, payment_type=None):
                         'https://t.me/joinchat/AAAAAFK5EtZ1L7eNAq99Yw', reply=False)
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     state=States.STATE_3,
                     content_types=ContentType.ANY)
 async def done(message: types.Message):
@@ -100,7 +101,7 @@ async def done(message: types.Message):
                         reply=False)
 
 
-@dp.message_handler(lambda m: m.from_user.id != admin_id,
+@dp.message_handler(lambda m: m.from_user.id not in admin_ids,
                     state=States.all())
 async def incorrect_input(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
