@@ -1,7 +1,7 @@
 import shelve
 
 from aiogram import types
-from aiogram.dispatcher import filters
+# from aiogram.dispatcher import filters
 from aiogram.types import ParseMode, ContentType
 from aiogram.utils.emoji import emojize
 from aiogram.utils.markdown import bold, text
@@ -31,18 +31,18 @@ async def process_start_command(message: types.Message):
     await state.set_state(States.all()[1])
 
     await message.reply(bold('Привет!\n\n') +
-                        bold('Чтобы зарегистрироваться на Соло Лабораторию к Лере: \n\n') +
-                        '  1. Напишите свою фамилию и имя\n'
-                        '  2. Пришлите файл или фото с чеком об оплате '
+                        bold('Чтобы зарегистрироваться на Соло Лабораторию: \n\n') +
+                        '    1. Напишите свою фамилию и имя\n'
+                        '    2. Пришлите файл или фото с чеком об оплате '
                         'или фото твоего абонемента МСДК'
-                        '(после регистрации я напишу вам лично, как и что отметить в абонементе)\n\n'
-                        ' ',
+                        '(после регистрации я напишу вам лично, как и что отметить в абонементе)\n\n',
                         parse_mode=ParseMode.MARKDOWN,
                         reply=False)
 
 
 @dp.message_handler(lambda m: m.from_user.id != admin_id,
-                    filters.Regexp(regexp='[a-zA-Zа-яА-Я\']+ [a-zA-Zа-яА-Я\']+'),
+                    #
+                    # filters.Regexp(regexp='[a-zA-Zа-яА-Я\']+ [a-zA-Zа-яА-Я\']+'),
                     state=States.STATE_1,
                     content_types=ContentType.TEXT)
 async def save_name_surname(message: types.Message):
