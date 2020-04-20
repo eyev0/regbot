@@ -7,24 +7,10 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 from aiogram.utils.executor import start_webhook
 
-from config import TOKEN, PROXY_URL
+from config import TOKEN, PROXY_URL, WEBHOOK_PATH, WEBHOOK_URL, WEBAPP_HOST, WEBAPP_PORT
 
-# webhook settings
-WEBHOOK_HOST = 'https://de-regbot.herokuapp.com'
-WEBHOOK_PATH = '/' + TOKEN
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
-# webserver settings
-WEBAPP_HOST = 'localhost'  # or ip
-try:
-    WEBAPP_PORT = int(os.environ.get('PORT', 5000))
-except ValueError:
-    WEBAPP_PORT = 5000
-
-if os.environ.get('PORT') is not None:
-    bot = Bot(token=TOKEN)
-else:
-    bot = Bot(token=TOKEN, proxy=PROXY_URL)
+bot = Bot(token=TOKEN, proxy=PROXY_URL)
 
 dp = Dispatcher(bot, storage=MemoryStorage())
 
@@ -49,11 +35,6 @@ async def on_startup(dp):
 async def on_shutdown(dp):
     logging.warning('Shutting down..')
 
-    # insert code here to run it before shutdown
-
-    # Remove webhook (not acceptable in some cases)
-    await bot.delete_webhook()
-
     # Close DB connection (if used)
     await dp.storage.close()
     await dp.storage.wait_closed()
@@ -64,15 +45,4 @@ from admin import *
 from user import *
 
 if __name__ == '__main__':
-    if os.environ.get('PORT') is not None:
-        start_webhook(
-            dispatcher=dp,
-            webhook_path=WEBHOOK_PATH,
-            on_startup=on_startup,
-            on_shutdown=on_shutdown,
-            skip_updates=True,
-            host=WEBAPP_HOST,
-            port=WEBAPP_PORT,
-        )
-    else:
-        executor.start_polling(dp, reset_webhook=True, on_shutdown=on_shutdown)
+    executor.start_polling(dp, on_shutdown=on_shutdown)
