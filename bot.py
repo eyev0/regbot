@@ -1,4 +1,5 @@
 import logging
+import os
 
 from aiogram import Bot, types, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -7,7 +8,11 @@ from aiogram.utils import executor
 
 from config import TOKEN, PROXY_URL
 
-bot = Bot(token=TOKEN, proxy=PROXY_URL)
+if os.environ.get('PORT') is not None:
+    bot = Bot(token=TOKEN)
+else:
+    bot = Bot(token=TOKEN, proxy=PROXY_URL)
+
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 logging.basicConfig(format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
