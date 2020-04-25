@@ -4,18 +4,19 @@ from aiogram import types
 from aiogram.types import InputMediaPhoto, InputMediaDocument, InputFile
 from aiogram.utils.exceptions import MessageNotModified, BadRequest
 
-from regbot.bot import dp, bot
-from regbot.config import Config
-from regbot.const.keyboards import keyboard_scroll, keyboard_refresh
-from regbot.db import session_scope, User
-from regbot.utils import UserListIterator
+from app.bot import dp, bot
+from app.config import Config
+from app.const.keyboards import keyboard_scroll, keyboard_refresh
+from app.db import session_scope
+from app.db.models import User
+from app.db.dao import UserDAO
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
 
 
-def build_header_message(all_users_count,
-                         new_users_count,
-                         all_names):
+def build_header_message(all_users_count: int,
+                         new_users_count: int,
+                         all_names: list):
     # build Header message
     m_h = 'Привет, admin! \n\n' \
           f'Регистраций: {str(all_users_count)} \n' \
@@ -27,7 +28,7 @@ def build_header_message(all_users_count,
 
 
 def build_body_message(user: User):
-    m_b = f'id: {user.user_id}, ' + (f'@{user.username}\n' if user.username is not None else '\n') + \
+    m_b = f'id: {user.uid}, ' + (f'@{user.username}\n' if user.username is not None else '\n') + \
           f'ФИО: {user.name_surname}\n' + \
           'Зареган: ' + ('да' if user.is_registered else 'нет') + '\n' \
                                                                   f'Когда: {user.edit_datetime}'
@@ -40,37 +41,34 @@ def build_body_message(user: User):
 async def process_start_command(message: types.Message):
     with session_scope() as session:
         # get all user data
-        all_users_q = session.query(User) \
-            .order_by(User.edit_datetime.desc())
-        new_users_q = all_users_q \
-            .filter_by(admin_check=False)
-        all_names = [x.name_surname for x in all_users_q.all()]
-        it = UserListIterator.get_obj(admin_id=message.from_user.id)
-        current_user: User = it.fetch(None, all_users_q.all())
+        all_users_list = UserDAO.get_all_list(session)
+        new_users_list = UserDAO.get_new_list(session)
+        all_names = [x.name_surname for x in all_users_list]
+        user: User = UserDAO.fetch(session, direction=None)
 
         # header message
-        m_h = build_header_message(all_users_q.count(),
-                                   new_users_q.count(),
+        m_h = build_header_message(len(all_users_list),
+                                   len(new_users_list),
                                    all_names)
 
         # body message
-        m_b = build_body_message(current_user)
+        m_b = build_body_message(user)
 
         # send header
         await message.reply(m_h,
                             reply=False,
                             reply_markup=keyboard_refresh)
         # send body
-        if current_user.is_registered:
+        if user.is_registered:
             try:
-                if current_user.file_type == 'photo':
+                if user.file_type == 'photo':
                     await bot.send_photo(message.chat.id,
-                                         photo=current_user.file_id,
+                                         photo=user.file_id,
                                          caption=m_b,
                                          reply_markup=keyboard_scroll)
                 else:
                     await bot.send_document(message.chat.id,
-                                            document=current_user.file_id,
+                                            document=user.file_id,
                                             caption=m_b,
                                             reply_markup=keyboard_scroll)
             except BadRequest:
@@ -90,15 +88,13 @@ async def process_start_command(message: types.Message):
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
     with session_scope() as session:
         # get all user data
-        all_users_q = session.query(User) \
-            .order_by(User.edit_datetime.desc())
-        new_users_q = all_users_q \
-            .filter_by(admin_check=False)
-        all_names = [x.name_surname for x in all_users_q.all()]
+        all_users_list = UserDAO.get_all_list(session)
+        new_users_list = UserDAO.get_new_list(session)
+        all_names = [x.name_surname for x in all_users_list]
 
         # header message
-        m_h = build_header_message(all_users_q.count(),
-                                   new_users_q.count(),
+        m_h = build_header_message(len(all_users_list),
+                                   len(new_users_list),
                                    all_names)
 
         # edit header
@@ -125,19 +121,14 @@ def media(user: User):
 @dp.callback_query_handler(lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'])
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
     with session_scope() as session:
-        # get all user data
-        all_users_q = session.query(User) \
-            .order_by(User.edit_datetime.desc())
-        it = UserListIterator.get_obj(callback_query.message.from_user.id)
-        current_user: User = it.fetch(callback_query.data, all_users_q.all())
-
+        next_user: User = UserDAO.fetch(session, direction=callback_query.data)
         try:
-            await callback_query.message.edit_media(media(current_user), reply_markup=keyboard_scroll)
+            await callback_query.message.edit_media(media(next_user), reply_markup=keyboard_scroll)
         except MessageNotModified:
             logging.info(f'Message {callback_query.message.message_id} is not modified')
         except BadRequest:
             # can't send media
-            await callback_query.message.edit_media(InputMediaDocument(kitty, caption=build_body_message(current_user)),
+            await callback_query.message.edit_media(InputMediaDocument(kitty, caption=build_body_message(next_user)),
                                                     reply_markup=keyboard_scroll)
 
         await bot.answer_callback_query(callback_query.id)
@@ -147,13 +138,24 @@ async def process_callback_button_scroll(callback_query: types.CallbackQuery):
                     state='*',
                     commands=['delete'])
 async def process_delete_command(message: types.Message):
-    u_id = message.get_args()
-
+    uid_to_delete = message.get_args()
     with session_scope() as session:
-        user = session.query(User) \
-            .filter_by(user_id=u_id) \
-            .all()
+        user: User = UserDAO.get_by_uid(session, uid_to_delete)
         if user is not None:
-            session.delete(user[0])
-            await message.reply(f'Запись юзера {user[0].name_surname}, id={user[0].id} удалена',
+            user.delete_me(session)
+    await message.reply(f'Запись удалена!',
+                        reply=False)
+
+
+@dp.message_handler(lambda m: m.from_user.id in Config.admin_ids,
+                    state='*',
+                    commands=['reset_state'])
+async def process_delete_command(message: types.Message):
+    uid_to_reset = message.get_args()
+    with session_scope() as session:
+        user: User = UserDAO.get_by_uid(session, uid_to_reset)
+        if user is not None:
+            state = dp.current_state(user=uid_to_reset)
+            await state.set_state(None)
+            await message.reply(f'Состояние юзера {user.name_surname}, id={uid_to_reset} сброшено',
                                 reply=False)

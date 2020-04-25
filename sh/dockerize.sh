@@ -1,7 +1,7 @@
 #!/bin/sh
 #echo docker rm -f $2
 #docker rm -f $2
-#echo docker cp regbot:/usr/src/app/data/f ~/dev/py/regbot/data/container/
+#echo docker cp app:/usr/src/app/data/f ~/dev/py/app/data/container/
 echo docker build --tag $1:latest .
 docker build --tag $1:latest .
 

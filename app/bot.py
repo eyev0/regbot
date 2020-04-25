@@ -1,13 +1,13 @@
 import logging
 import os
 
-from aiogram import Bot, types, Dispatcher
+from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 from aiogram.utils.executor import start_webhook
 
-from regbot.config import Config
+from app.config import Config
 
 logging.basicConfig(format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
                     level=logging.INFO)
@@ -21,12 +21,6 @@ else:
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 dp.middleware.setup(LoggingMiddleware())
-
-
-@dp.message_handler(state='*', commands=['help'])
-async def process_help_command(message: types.Message):
-    msg = text(bold('Help me!..'))
-    await message.reply(msg, parse_mode=ParseMode.MARKDOWN, reply=False)
 
 
 async def on_startup(dp):
@@ -48,8 +42,9 @@ async def on_shutdown(dp):
     logging.warning('Bye!')
 
 
-from regbot.handlers.user import *
-from regbot.handlers.admin import *
+from app.handlers.user import *
+from app.handlers.admin import *
+from app.handlers.common import *
 
 if __name__ == '__main__':
     if os.environ.get('PORT') is not None:

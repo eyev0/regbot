@@ -18,7 +18,7 @@ class Config(object):
     PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
 
     admin_ids = [119707338, 296145754]
-    admin_ids = [x + 1 for x in admin_ids]
+    # admin_ids = [x + 1 for x in admin_ids]
 
     file = './data/f'
 
