@@ -33,28 +33,18 @@ class User(Base):
     edit_datetime = Column(DateTime, default=clock.now())
 
     def __init__(self,
-                 user_id,
+                 uid,
                  username='',
                  name_surname='',
-                 registered=False,
-                 admin_check=False,
-                 file_type='document',
-                 file_id='',
                  edit_datetime=clock.now()):
-        self.uid = user_id
+        self.uid = uid
         self.username = username
         self.name_surname = name_surname
-        self.is_registered = registered
-        self.admin_check = admin_check
-        self.file_type = file_type
-        self.file_id = file_id
         self.edit_datetime = edit_datetime
 
     def __repr__(self):
-        return "User(id={}, user_id={}, username={}, name_surname={}, registered={}, " \
-               "admin_check={}, file_type={}, file_id={}, edit_datetime={})" \
-            .format(self.id, self.uid, self.username, self.name_surname, self. is_registered,
-                    self.admin_check, self.file_type, self.file_id, self.edit_datetime)
+        return "User(id={}, uid={}, username={}, name_surname={}, edit_datetime={})" \
+            .format(self.id, self.uid, self.username, self.name_surname, self.edit_datetime)
 
 
 class Event(Base):
@@ -63,21 +53,24 @@ class Event(Base):
     title = Column(String(100))
     description = Column(String(1000))
     hello_message = Column(String(1000))
+    complete_message = Column(String(1000))
     edit_datetime = Column(DateTime, default=clock.now())
 
     def __init__(self,
                  title='',
                  description='',
                  hello_message='',
+                 complete_message='',
                  edit_datetime=clock.now()):
         self.title = title
         self.description = description
         self.hello_message = hello_message
+        self.complete_message = complete_message
         self.edit_datetime = edit_datetime
 
     def __repr__(self):
-        return "Event(id={}, event_id={}, title={}, description={}, hello_message={}, edit_datetime={})" \
-            .format(self.id, self.event_id, self.title, self.description, self. hello_message, self.edit_datetime)
+        return "Event(id={}, title={}, description={}, hello_message={}, complete_message={}, edit_datetime={})" \
+            .format(self.id, self.title, self.description, self. hello_message, self. complete_message, self.edit_datetime)
 
 
 class Enrollment(Base):
@@ -93,14 +86,18 @@ class Enrollment(Base):
     event_id = Column(Integer, ForeignKey('event.id'), index=True)
 
     user = relationship('User', backref='user_receipts', foreign_keys=[user_id])
-    event = relationship('Event', backref='event_receipts', foreign_keys=[event_id])
+    event = relationship('Event', backref='event_enrollments', foreign_keys=[event_id])
 
     def __init__(self,
-                 complete='',
-                 admin_check='',
+                 user_id,
+                 event_id,
+                 complete=False,
+                 admin_check=False,
                  file_type='',
                  file_id='',
                  edit_datetime=clock.now()):
+        self.user_id = user_id
+        self.event_id = event_id
         self.complete = complete
         self.admin_check = admin_check
         self.file_type = file_type
@@ -108,5 +105,7 @@ class Enrollment(Base):
         self.edit_datetime = edit_datetime
 
     def __repr__(self):
-        return "Enrollment(id={}, complete={}, admin_check={}, file_type={}, file_id={}, edit_datetime={})" \
-            .format(self.id, self.complete, self.admin_check, self.file_type, self. file_id, self.edit_datetime)
+        return "Enrollment(id={}, user_id={}, event_id={}, complete={}, " \
+               "admin_check={}, file_type={}, file_id={}, edit_datetime={})" \
+            .format(self.id, self.user_id, self.event_id, self.complete,
+                    self.admin_check, self.file_type, self. file_id, self.edit_datetime)

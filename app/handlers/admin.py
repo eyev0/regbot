@@ -8,10 +8,11 @@ from app.bot import dp, bot
 from app.config import Config
 from app.const.keyboards import keyboard_scroll, keyboard_refresh
 from app.db import session_scope
-from app.db.models import User
-from app.db.dao import UserDAO
+from app.db.models import User, Enrollment
+from app.db.dao import UserDAO, EnrollmentDAO
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
+event_id = 1
 
 
 def build_header_message(all_users_count: int,
@@ -40,35 +41,43 @@ def build_body_message(user: User):
                     commands=['start'])
 async def process_start_command(message: types.Message):
     with session_scope() as session:
+        query = session.query(User, Enrollment)\
+            .join(Enrollment)\
+            .filter(Enrollment.event_id == event_id)
+
         # get all user data
-        all_users_list = UserDAO.get_all_list(session)
-        new_users_list = UserDAO.get_new_list(session)
-        all_names = [x.name_surname for x in all_users_list]
-        user: User = UserDAO.fetch(session, direction=None)
+        result = query.all()
+        users_enrolled = [x[0] for x in result]
+        new_enrolled = users_enrolled
+        all_names = [x.name_surname for x in users_enrolled]
+        # TODO: fetch..
+        enrollment: Enrollment = EnrollmentDAO.fetch(session, direction=None)
 
         # header message
-        m_h = build_header_message(len(all_users_list),
-                                   len(new_users_list),
+        m_h = build_header_message(len(users_enrolled),
+                                   len(new_enrolled),
                                    all_names)
-
-        # body message
-        m_b = build_body_message(user)
-
         # send header
         await message.reply(m_h,
                             reply=False,
                             reply_markup=keyboard_refresh)
+
+        if enrollment is None:
+            return
+
+        # body message
+        m_b = build_body_message(enrollment)
         # send body
-        if user.is_registered:
+        if enrollment.is_registered:
             try:
-                if user.file_type == 'photo':
+                if enrollment.file_type == 'photo':
                     await bot.send_photo(message.chat.id,
-                                         photo=user.file_id,
+                                         photo=enrollment.file_id,
                                          caption=m_b,
                                          reply_markup=keyboard_scroll)
                 else:
                     await bot.send_document(message.chat.id,
-                                            document=user.file_id,
+                                            document=enrollment.file_id,
                                             caption=m_b,
                                             reply_markup=keyboard_scroll)
             except BadRequest:

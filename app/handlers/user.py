@@ -8,9 +8,12 @@ from aiogram.utils.markdown import bold, text
 from app.bot import dp
 from app.config import Config
 from app.db import session_scope
-from app.db.models import User
-from app.db.dao import UserDAO
+from app.db.models import User, Event, Enrollment
+from app.db.dao import UserDAO, EnrollmentDAO, EventDAO
 from app.utils import States, clock
+
+# TODO: remove hardcode
+event_id = 1
 
 
 @dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
@@ -21,24 +24,38 @@ async def process_start_command(message: types.Message):
     with session_scope() as session:
         user: User = UserDAO.get_by_uid(session, uid)
         if user is None:
-            user = User(user_id=uid,
+            user = User(uid=uid,
                         username=message.from_user.username) \
                 .insert_me(session)
             # uid, username
             logging.info(f'user created: {user}')
 
+        # get event
+        enroll: Enrollment = EnrollmentDAO.get_by_uid_event_id(session, uid, event_id)
+        if enroll is None:
+            # create enrollment
+            enroll = Enrollment(user_id=user.id,
+                                event_id=event_id) \
+                .insert_me(session)
+            logging.info(f'enrollment created: {enroll}')
+
+        event: Event = EventDAO.get_by_event_id(session, event_id)
+        assert event is not None
+
         # build message
-        if user.is_registered:
-            m = bold('Вы уже зарегистрировались! Ура!')
+        if enroll.complete:
+            m = event.complete_message
         else:
-            m = bold('Привет!\n\n') + \
-                bold('Чтобы зарегистрироваться на Соло Лабораторию: \n\n') + \
-                '    1. Напишите свою фамилию и имя\n' \
-                '    2. Пришлите файл или фото с чеком об оплате ' \
-                'или фото твоего абонемента МСДК' \
-                '(после регистрации я напишу вам лично, как и что отметить в абонементе)\n\n'
             state = dp.current_state(user=uid)
-            await state.set_state(States.all()[1])
+            if user.name_surname == '':
+                m = event.hello_message
+                await state.set_state(States.all()[1])
+            else:
+                # TODO: separate states-messages to its own table
+                m = bold('Привет!\n\n') + \
+                    bold('Мы продолжаем Соло Лабораторию-недельку :)\n\n') + \
+                    'Для регистрации просто пришлите файл или фото с чеком об оплате'
+                await state.set_state(States.all()[2])
 
     await message.reply(m,
                         parse_mode=ParseMode.MARKDOWN,
@@ -75,12 +92,12 @@ async def process_invoice(message: types.Message):
         file_id = message.photo[-1].file_id
 
     with session_scope() as session:
-        user: User = UserDAO.get_by_uid(session, uid)
-        assert user is not None
-        user.file_type = invoice_type
-        user.file_id = file_id
-        user.is_registered = True
-        user.edit_datetime = clock.now()
+        enroll: Enrollment = EnrollmentDAO.get_by_uid_event_id(session, uid, event_id)
+        assert enroll is not None
+        enroll.file_type = invoice_type
+        enroll.file_id = file_id
+        enroll.complete = True
+        enroll.edit_datetime = clock.now()
 
     state = dp.current_state(user=message.from_user.id)
     await state.set_state(States.all()[3])
@@ -98,7 +115,7 @@ async def chat(message: types.Message):
     if awaited_state == States.STATE_1[0]:
         t = emojize('Напишите мне, пожалуйста, свою фамилию и имя :)')
     elif awaited_state == States.STATE_2[0]:
-        t = 'Осталось только прислать квитанцию или абонемент! Я верю в тебя! :)'
+        t = 'Осталось прислать квитанцию! Я верю в тебя! :)'
     elif awaited_state == States.STATE_3[0]:
         t = text(emojize('На этом всё, дорогой друг! Спасибо, что ты с нами! '
                          ':heart: :new_moon_with_face:'))
