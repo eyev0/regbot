@@ -36,3 +36,4 @@ class Config(object):
 
     # db_filename = '/home/db/users.db'
     db_filename = '/db/users.db' if os.path.exists('/db') else '/home/egor/db/regbot/users.db'
+    log_filename = '/log/regbot.log' if os.path.exists('/log') else '/home/egor/logs/regbot/regbot.log'

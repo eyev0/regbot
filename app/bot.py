@@ -1,26 +1,9 @@
-import logging
 import os
 
-from aiogram import Bot, Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 from aiogram.utils.executor import start_webhook
 
-from app.config import Config
-
-logging.basicConfig(format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
-                    level=logging.INFO)
-
-
-if os.environ.get('PORT') is not None:
-    bot = Bot(token=Config.TOKEN)
-else:
-    bot = Bot(token=Config.TOKEN, proxy=Config.PROXY_URL)
-
-dp = Dispatcher(bot, storage=MemoryStorage())
-
-dp.middleware.setup(LoggingMiddleware())
+from app import bot, dp as dispatcher
 
 
 async def on_startup(dp):
@@ -42,13 +25,12 @@ async def on_shutdown(dp):
     logging.warning('Bye!')
 
 
-from app.handlers.admin import *
 from app.handlers.user import *
 
 if __name__ == '__main__':
     if os.environ.get('PORT') is not None:
         start_webhook(
-            dispatcher=dp,
+            dispatcher=dispatcher,
             webhook_path=Config.TOKEN,
             on_startup=on_startup,
             on_shutdown=on_shutdown,
@@ -57,6 +39,6 @@ if __name__ == '__main__':
             port=Config.WEBAPP_PORT,
         )
     else:
-        executor.start_polling(dp,
+        executor.start_polling(dispatcher,
                                on_shutdown=on_shutdown,
                                timeout=20)

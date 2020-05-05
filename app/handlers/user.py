@@ -6,7 +6,7 @@ from aiogram.utils.emoji import emojize
 from aiogram.utils.markdown import text
 from sqlalchemy import or_, and_
 
-from app.bot import dp
+from app import dp
 from app.config import Config
 from app.const.messages import MESSAGES
 from app.db import session_scope

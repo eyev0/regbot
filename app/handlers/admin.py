@@ -1,10 +1,10 @@
 import logging
 
 from aiogram import types
-from aiogram.types import InputMediaPhoto, InputMediaDocument, InputFile, ContentType, ReplyKeyboardRemove, ParseMode
+from aiogram.types import InputMediaPhoto, InputMediaDocument, InputFile, ReplyKeyboardRemove, ParseMode
 from aiogram.utils.exceptions import MessageNotModified, BadRequest
 
-from app.bot import dp, bot
+from app import dp, bot
 from app.config import Config
 from app.const.messages import MESSAGES
 from app.db import session_scope
