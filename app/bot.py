@@ -42,9 +42,8 @@ async def on_shutdown(dp):
     logging.warning('Bye!')
 
 
-from app.handlers.user import *
 from app.handlers.admin import *
-from app.handlers.common import *
+from app.handlers.user import *
 
 if __name__ == '__main__':
     if os.environ.get('PORT') is not None:
@@ -60,4 +59,4 @@ if __name__ == '__main__':
     else:
         executor.start_polling(dp,
                                on_shutdown=on_shutdown,
-                               timeout=80)
+                               timeout=20)

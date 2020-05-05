@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
-from app.utils import clock
+from app.handlers.utils.utils import clock
 
 Base = declarative_base()
 
@@ -52,25 +52,27 @@ class Event(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100))
     description = Column(String(1000))
-    hello_message = Column(String(1000))
-    complete_message = Column(String(1000))
+    access_info = Column(String(1000))
+    status = Column(Integer)
     edit_datetime = Column(DateTime, default=clock.now())
 
     def __init__(self,
                  title='',
                  description='',
-                 hello_message='',
-                 complete_message='',
+                 access_info='',
+                 status=0,
                  edit_datetime=clock.now()):
         self.title = title
         self.description = description
-        self.hello_message = hello_message
-        self.complete_message = complete_message
+        self.access_info = access_info
+        self.status = status
         self.edit_datetime = edit_datetime
 
     def __repr__(self):
-        return "Event(id={}, title={}, description={}, hello_message={}, complete_message={}, edit_datetime={})" \
-            .format(self.id, self.title, self.description, self. hello_message, self. complete_message, self.edit_datetime)
+        return "Event(id={}, title={}, description={}, access_info={}, status={}, " \
+               "edit_datetime={})" \
+            .format(self.id, self.title, self.description, self.access_info, self. status,
+                    self.edit_datetime)
 
 
 class Enrollment(Base):
@@ -82,10 +84,10 @@ class Enrollment(Base):
     file_id = Column(String(1000))
     edit_datetime = Column(DateTime, default=clock.now())
 
-    user_id = Column(Integer, ForeignKey('user.id'), index=True)
-    event_id = Column(Integer, ForeignKey('event.id'), index=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    event_id = Column(Integer, ForeignKey('event.id'))
 
-    user = relationship('User', backref='user_receipts', foreign_keys=[user_id])
+    user = relationship('User', backref='user_enrollments', foreign_keys=[user_id])
     event = relationship('Event', backref='event_enrollments', foreign_keys=[event_id])
 
     def __init__(self,
@@ -106,6 +108,8 @@ class Enrollment(Base):
 
     def __repr__(self):
         return "Enrollment(id={}, user_id={}, event_id={}, complete={}, " \
-               "admin_check={}, file_type={}, file_id={}, edit_datetime={})" \
+               "admin_check={}, file_type={}, file_id={}, edit_datetime={}," \
+               "user_id={}, event_id={})" \
             .format(self.id, self.user_id, self.event_id, self.complete,
-                    self.admin_check, self.file_type, self. file_id, self.edit_datetime)
+                    self.admin_check, self.file_type, self. file_id, self.edit_datetime,
+                    self.user_id, self. event_id)

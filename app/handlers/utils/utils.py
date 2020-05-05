@@ -15,6 +15,10 @@ class States(Helper):
     STATE_5 = ListItem()
 
 
+class EventIdHolder(object):
+    event_id = 1
+
+
 class WrappingListIterator(object):
 
     obj = None
@@ -29,8 +33,9 @@ class WrappingListIterator(object):
             cls.obj = cls()
         return cls.obj
 
-    def fetch(self, list_, direction):
-        assert len(list_) > 0
+    def fetch(self, list_, direction=None):
+        if len(list_) == 0:
+            return None
         if direction is not None:
             if direction[:6] != 'rewind':
                 self.pos += (1 if direction == 'forward' else -1)
