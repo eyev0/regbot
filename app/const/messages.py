@@ -37,3 +37,28 @@ MESSAGES = {
     'admin_disable': admin_disable,
     'admin_events': admin_events,
 }
+
+
+def build_header(all_users_count: int,
+                 new_users_count: int,
+                 all_names: list):
+    # build Header message
+    m_h = 'Привет, admin! \n\n' \
+          f'Регистраций: {str(all_users_count)} \n' \
+          f'Новых: {str(new_users_count)}\n\n' \
+          f'Список:\n' + \
+          '_______________________\n' + \
+          '\n'.join(all_names) + '\n'
+    return m_h
+
+
+def build_caption(uid,
+                  username,
+                  name_surname,
+                  complete,
+                  edit_datetime):
+    m_b = f'id: {uid}, ' + (f'@{username}\n' if username is not None else '\n') + \
+          f'ФИО: {name_surname}\n' + \
+          'Зареган: ' + ('да' if complete else 'нет') + '\n' + \
+          f'Когда: {edit_datetime}'
+    return m_b

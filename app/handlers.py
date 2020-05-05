@@ -8,38 +8,13 @@ from aiogram.utils.markdown import text
 from sqlalchemy import and_, or_
 
 from app import Config, dp, bot, clock
-from app.const.messages import MESSAGES
+from app.const.messages import MESSAGES, build_header, build_caption
 from app.db import session_scope
 from app.db.models import User, Event, Enrollment
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
 from app.utils.utils import admin_lambda, States, EventIdHolder, WrappingListIterator, not_admin_lambda
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
-
-
-def build_header(all_users_count: int,
-                 new_users_count: int,
-                 all_names: list):
-    # build Header message
-    m_h = 'Привет, admin! \n\n' \
-          f'Регистраций: {str(all_users_count)} \n' \
-          f'Новых: {str(new_users_count)}\n\n' \
-          f'Список:\n' + \
-          '_______________________\n' + \
-          '\n'.join(all_names) + '\n'
-    return m_h
-
-
-def build_caption(uid,
-                  username,
-                  name_surname,
-                  complete,
-                  edit_datetime):
-    m_b = f'id: {uid}, ' + (f'@{username}\n' if username is not None else '\n') + \
-          f'ФИО: {name_surname}\n' + \
-          'Зареган: ' + ('да' if complete else 'нет') + '\n' + \
-          f'Когда: {edit_datetime}'
-    return m_b
 
 
 @dp.message_handler(state='*',
