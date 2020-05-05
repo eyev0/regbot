@@ -12,7 +12,7 @@ from app.const.messages import MESSAGES
 from app.db import session_scope
 from app.db.models import User, Enrollment, Event
 from app.handlers.utils.keyboards import events_reply_keyboard
-from app.handlers.utils.utils import States, clock
+from app.handlers.utils.utils import States, clock, admin_lambda, not_admin_lambda
 
 
 @dp.message_handler(state='*',
@@ -39,7 +39,7 @@ async def process_help_command(message: types.Message):
     await message.reply(m_text, parse_mode=ParseMode.MARKDOWN, reply=False)
 
 
-@dp.message_handler(lambda m: m.from_user.id in Config.admin_ids,
+@dp.message_handler(admin_lambda(),
                     state='*',
                     commands=['delete'])
 async def process_delete_command(message: types.Message):
@@ -63,7 +63,7 @@ async def process_cancel_command(message: types.Message):
                         reply_markup=ReplyKeyboardRemove())
 
 
-@dp.message_handler(lambda m: m.from_user.id in Config.admin_ids,
+@dp.message_handler(admin_lambda(),
                     state='*',
                     commands=['reset_state'])
 async def process_reset_state_command(message: types.Message):
@@ -104,7 +104,7 @@ async def show_event_list_task(message: types.Message):
                             reply_markup=events_keyboard)
 
 
-@dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
+@dp.message_handler(not_admin_lambda(),
                     state='*',
                     commands=['start'])
 async def process_start_command(message: types.Message):
@@ -128,7 +128,7 @@ async def process_start_command(message: types.Message):
             await show_event_list_task(message)
 
 
-@dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
+@dp.message_handler(not_admin_lambda(),
                     state=States.STATE_1,
                     content_types=ContentType.TEXT)
 async def process_name(message: types.Message):
@@ -146,7 +146,7 @@ async def process_name(message: types.Message):
     await show_event_list_task(message)
 
 
-@dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
+@dp.message_handler(not_admin_lambda(),
                     state=States.STATE_2,
                     content_types=ContentType.TEXT)
 async def process_event_click(message: types.Message):
@@ -194,7 +194,7 @@ async def process_event_click(message: types.Message):
                             reply_markup=remove_keyboard)
 
 
-@dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
+@dp.message_handler(not_admin_lambda(),
                     state=States.STATE_3,
                     content_types=[ContentType.PHOTO, ContentType.DOCUMENT])
 async def process_invoice(message: types.Message):
@@ -230,7 +230,7 @@ async def process_invoice(message: types.Message):
         await show_event_list_task(message)
 
 
-@dp.message_handler(lambda m: m.from_user.id not in Config.admin_ids,
+@dp.message_handler(not_admin_lambda(),
                     state='*',
                     content_types=ContentType.ANY)
 async def chat(message: types.Message):

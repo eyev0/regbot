@@ -3,6 +3,8 @@ from datetime import datetime
 import pytz
 from aiogram.utils.helper import Helper, HelperMode, ListItem
 
+from app import Config
+
 
 class States(Helper):
     mode = HelperMode.snake_case
@@ -51,3 +53,11 @@ class WrappingListIterator(object):
 
 
 clock = datetime(2020, 1, 1, tzinfo=pytz.timezone('Europe/Moscow'))
+
+
+def admin_lambda():
+    return lambda m: m.from_user.id in Config.admin_ids
+
+
+def not_admin_lambda():
+    return lambda m: m.from_user.id not in Config.admin_ids
