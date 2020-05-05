@@ -6,7 +6,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from app.config import Config
-from app.handlers.utils.utils import clock
+from app.utils.utils import clock
 
 if os.path.exists(Config.log_filename):
     os.rename(Config.log_filename, Config.log_filename + '.' + str(clock.now())[:19])
@@ -23,3 +23,5 @@ else:
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 dp.middleware.setup(LoggingMiddleware())
+
+from app.handlers import *

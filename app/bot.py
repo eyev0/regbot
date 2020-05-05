@@ -1,9 +1,10 @@
+import logging
 import os
 
 from aiogram.utils import executor
 from aiogram.utils.executor import start_webhook
 
-from app import bot, dp as dispatcher
+from app import dp as dispatcher, bot, Config
 
 
 async def on_startup(dp):
@@ -23,9 +24,6 @@ async def on_shutdown(dp):
     await dp.storage.wait_closed()
 
     logging.warning('Bye!')
-
-
-from app.handlers.user import *
 
 if __name__ == '__main__':
     if os.environ.get('PORT') is not None:
