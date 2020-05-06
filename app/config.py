@@ -17,8 +17,8 @@ class Config(object):
     PROXY_PORT = '1080'
     PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
 
-    admin_ids = [119707338, 296145754]
-    # admin_ids = [x + 1 for x in admin_ids]
+    admin_ids = [296145754,]  # Lera
+    # admin_ids = [119707338, 296145754]
 
     RANDOM_KITTEN_JPG = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Red_Kitten_01.jpg/' \
                         '320px-Red_Kitten_01.jpg'
@@ -35,5 +35,7 @@ class Config(object):
         WEBAPP_PORT = 8443
 
     # db_filename = '/home/db/users.db'
-    db_filename = '/db/users.db' if os.path.exists('/db') else '/home/egor/db/regbot/users.db'
-    log_filename = '/log/regbot.log' if os.path.exists('/log') else '/home/egor/logs/regbot/regbot.log'
+    db_path = '/db/users.db' if os.path.exists('/db') else '/home/egor/db/regbot/users.db'
+    log_path = '/log/regbot.log' if os.path.exists('/log') else '/home/egor/logs/regbot/regbot.log'
+    FSMstorage_path = '/FSMstorage/regbot.json' if os.path.exists('/FSMstorage') else \
+        '/home/egor/FSMstorage/regbot.json'

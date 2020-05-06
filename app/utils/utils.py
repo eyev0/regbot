@@ -18,7 +18,7 @@ class States(Helper):
 
 
 class EventIdHolder(object):
-    event_id = 1
+    event_id = None
 
 
 class WrappingListIterator(object):

@@ -8,7 +8,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from app.config import Config
 from app.db.models import Base
 
-engine = sqlalchemy.create_engine(f'sqlite:///{Config.db_filename}')
+engine = sqlalchemy.create_engine(f'sqlite:///{Config.db_path}')
 
 Base.metadata.create_all(engine)
 

@@ -22,8 +22,6 @@ kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет инф
 async def process_admin_command(message: types.Message):
     magic_word = message.get_args()
     uid = message.from_user.id
-    state = dp.current_state(user=uid)
-    await state.set_state(None)
     if magic_word == 'pls':
         if uid not in Config.admin_ids:
             Config.admin_ids.append(uid)
@@ -53,32 +51,21 @@ async def process_cancel_command(message: types.Message):
                     state='*',
                     commands=['delete'])
 async def process_delete_command(message: types.Message):
-    uid_to_delete = message.get_args()
+    args = message.get_args().split(' ')
+    if len(args) < 2:
+        return
+    event_id = args[0]
+    uid_to_delete = args[1]
     with session_scope() as session:
-        user_q = session.query(User) \
-            .filter(User.uid == uid_to_delete)
+        enroll_q = session.query(Enrollment) \
+            .join(User) \
+            .filter(User.uid == uid_to_delete) \
+            .filter(Enrollment.event_id == event_id)
         # get one record
-        if user_q.count() > 0:
-            user: User = user_q.all()[0]
-            user.delete_me(session)
+        if enroll_q.count() > 0:
+            enroll: Enrollment = enroll_q.all()[0]
+            enroll.delete_me(session)
             await message.reply(f'Запись удалена!',
-                                reply=False)
-
-
-@dp.message_handler(admin_lambda(),
-                    state='*',
-                    commands=['reset_state'])
-async def process_reset_state_command(message: types.Message):
-    uid_to_reset = message.get_args()
-    with session_scope() as session:
-        user_q = session.query(User) \
-            .filter(User.uid == uid_to_reset)
-        # get one record
-        if user_q.count() > 0:
-            user: User = user_q.all()[0]
-            state = dp.current_state(user=uid_to_reset)
-            await state.set_state(None)
-            await message.reply(f'Состояние юзера {user.name_surname}, id={uid_to_reset} сброшено',
                                 reply=False)
 
 
@@ -93,11 +80,7 @@ async def process_start_command_admin(message: types.Message):
             .filter(Event.status < 9) \
             .order_by(Event.edit_datetime.desc())
 
-        if events_q.count() > 0:
-            events_keyboard = events_reply_keyboard(events_q.all())
-            await state.set_state(States.all()[1])
-        else:
-            events_keyboard = None
+        events_keyboard = events_reply_keyboard(events_q.all())
 
         await message.reply(MESSAGES['admin_events'],
                             reply=False,
@@ -132,7 +115,9 @@ async def process_event_click_admin(message: types.Message):
         all_names = [x[0].name_surname for x in users_enrolls_list]
 
         # header message
-        m_h = build_header(count,
+        m_h = build_header(event.title,
+                           event.id,
+                           count,
                            count,
                            all_names)
         # send header
@@ -182,7 +167,17 @@ async def process_event_click_admin(message: types.Message):
                            lambda c: c.data in ['refresh'],
                            state='*')
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
+    if EventIdHolder.event_id is None:
+        await callback_query.message.reply(MESSAGES['admin_restart'],
+                                           reply=False)
+        await bot.answer_callback_query(callback_query.id)
+        return
+
     with session_scope() as session:
+        event_q = session.query(Event) \
+            .filter(Event.id == EventIdHolder.event_id)
+        event: Event = event_q.all()[0]
+
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
@@ -193,7 +188,9 @@ async def process_callback_button_refresh_header(callback_query: types.CallbackQ
         all_names = [x[0].name_surname for x in users_enrolls_list]
 
         # header message
-        m_h = build_header(count,
+        m_h = build_header(event.title,
+                           event.id,
+                           count,
                            count,
                            all_names)
 
@@ -222,13 +219,19 @@ def media_with_caption(enroll_complete, file_type, file_id, caption):
                            lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
                            state='*')
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
+    if EventIdHolder.event_id is None:
+        await callback_query.message.reply(MESSAGES['admin_restart'],
+                                           reply=False)
+        await bot.answer_callback_query(callback_query.id)
+        return
+
     with session_scope() as session:
+        # get all user and enrollment data
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
             .filter(Event.id == EventIdHolder.event_id) \
             .order_by(Enrollment.edit_datetime.desc())
-        # get all user and enrollment data
         users_enrolls_list = users_enrolls_q.all()
         # get one record
         user, enrollment = WrappingListIterator.get_obj().fetch(users_enrolls_list,

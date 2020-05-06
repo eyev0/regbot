@@ -9,5 +9,7 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 RUN mkdir /db
+RUN mkdir /log
+RUN mkdir /FSMstorage
 
 CMD [ "python", "./app/bot.py" ]

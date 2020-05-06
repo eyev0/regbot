@@ -20,6 +20,8 @@ max_buttons_in_row = 1
 
 
 def events_reply_keyboard(events_list):
+    if len(events_list) == 0:
+        return None
     i = 0
     row_list = []
     for event in events_list:

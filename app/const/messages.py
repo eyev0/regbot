@@ -15,13 +15,16 @@ registration_complete = '*Спасибо! Вы успешно зарегистр
 registration_exists = '*Вы уже регистрировались на это мероприятие ранее :)*'
 
 help_message = 'Это - *бот-помощник* для регистрации на онлайн-классы *Леры* *Трифоновой*\n' \
+               'Введи /start, чтобы посмотреть список доступных мероприятий.\n' \
                'Если у тебя есть вопрос про мероприятия или про этого бота - напиши мне *@danceleradance*'
 
 admin_enable = 'Ладно... будешь за админа теперь!'
 
 admin_disable = 'Теперь ты как все, друг!'
 
-admin_events = 'Список мероприятий'
+admin_events = 'Список мероприятий:'
+
+admin_restart = "Привет, админ! Введи /start, чтобы начать."
 
 MESSAGES = {
     'greet_new_user': greet_new_user,
@@ -36,14 +39,18 @@ MESSAGES = {
     'admin_enable': admin_enable,
     'admin_disable': admin_disable,
     'admin_events': admin_events,
+    'admin_restart': admin_restart,
 }
 
 
-def build_header(all_users_count: int,
+def build_header(event_title: str,
+                 event_id: int,
+                 all_users_count: int,
                  new_users_count: int,
                  all_names: list):
     # build Header message
-    m_h = 'Привет, admin! \n\n' \
+    m_h = f'Ивент: {event_title}\n' \
+          f'ID ивента: {event_id}\n' \
           f'Регистраций: {str(all_users_count)} \n' \
           f'Новых: {str(new_users_count)}\n\n' \
           f'Список:\n' + \

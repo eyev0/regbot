@@ -28,12 +28,12 @@ docker rename "$old_name" "$new_name"
 
 if [ "$2" == "stop" ]; then
   echo
-  echo "docker stop $new_name"
+  echo "docker kill --signal=SIGINT $new_name"
   echo
-  docker stop "$new_name"
+  docker kill --signal=SIGINT "$new_name"
 fi
 
 echo
 echo "docker container run -d -it -v ~/db/$1:/db -v ~/logs/$1:/log --name $1 $1"
 echo
-docker container run -d -it -v ~/db/"$1":/db -v ~/logs/"$1":/log --name "$1" "$1"
+docker container run -d -it -v ~/db/"$1":/db -v ~/logs/"$1":/log -v ~/FSMstorage:/FSMstorage --name "$1" "$1"
