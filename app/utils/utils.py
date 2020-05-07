@@ -6,7 +6,16 @@ from aiogram.utils.helper import Helper, HelperMode, ListItem
 from app import Config
 
 
-class States(Helper):
+class UserStates(Helper):
+    mode = HelperMode.snake_case
+
+    STATE_0 = ListItem()
+    STATE_1 = ListItem()
+    STATE_2 = ListItem()
+    STATE_3 = ListItem()
+
+
+class CreateEventStates(Helper):
     mode = HelperMode.snake_case
 
     STATE_0 = ListItem()

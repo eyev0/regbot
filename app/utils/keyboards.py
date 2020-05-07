@@ -1,5 +1,20 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, \
-    KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+
+button_events = KeyboardButton('Список мероприятий')
+button_create_new = KeyboardButton('Создать новое')
+keyboard_admin_menu = ReplyKeyboardMarkup()
+keyboard_admin_menu.row(button_events)
+keyboard_admin_menu.row(button_create_new)
+
+
+button_event_view_enrolls = KeyboardButton('Список регистраций')
+button_event_change_status = KeyboardButton('Изменить статус')
+button_event_publish = KeyboardButton('Отправить уведомление юзерам')
+keyboard_admin_events_submenu = ReplyKeyboardMarkup()
+keyboard_admin_events_submenu.row(button_event_view_enrolls)
+keyboard_admin_events_submenu.row(button_event_change_status)
+keyboard_admin_events_submenu.row(button_event_publish)
+
 
 button_rewind_back = InlineKeyboardButton('<<', callback_data='rewind_back')
 button_back = InlineKeyboardButton('<', callback_data='back')

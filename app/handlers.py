@@ -11,7 +11,7 @@ from app.db import session_scope
 from app.db.models import User, Event, Enrollment
 from app.messages import MESSAGES, build_header, build_caption
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
-from app.utils.utils import admin_lambda, States, EventIdHolder, WrappingListIterator, not_admin_lambda
+from app.utils.utils import admin_lambda, UserStates, EventIdHolder, WrappingListIterator, not_admin_lambda, CreateEventStates
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
 
@@ -64,7 +64,7 @@ async def process_delete_command(message: types.Message):
         if enroll_q.count() > 0:
             enroll: Enrollment = enroll_q.all()[0]
             enroll.delete_me(session)
-            await message.reply(f'Запись удалена!',
+            await message.reply(MESSAGES['admin_record_deleted'],
                                 reply=False)
 
 
@@ -80,8 +80,72 @@ async def process_delete_command(message: types.Message):
         if user_q.count() > 0:
             user: User = user_q.all()[0]
             user.delete_me(session)
-            await message.reply(f'Запись удалена!',
+            await message.reply(MESSAGES['admin_record_deleted'],
                                 reply=False)
+
+
+@dp.message_handler(admin_lambda(),
+                    state='*',
+                    commands=['create_event'])
+async def process_create_event_command(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    await message.reply(MESSAGES['create_event_prompt_name'],
+                        reply=False)
+    await state.set_state(CreateEventStates.all()[1])
+
+
+@dp.message_handler(admin_lambda(),
+                    state=CreateEventStates.STATE_1,
+                    content_types=ContentType.TEXT)
+async def process_event_name(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    with session_scope() as session:
+        Event(title=message.text)\
+            .insert_me(session)
+    await message.reply(MESSAGES['create_event_prompt_descr'],
+                        reply=False)
+    await state.set_state(CreateEventStates.all()[2])
+
+
+@dp.message_handler(admin_lambda(),
+                    state=CreateEventStates.STATE_2,
+                    content_types=ContentType.TEXT)
+async def process_event_descr(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    with session_scope() as session:
+        event_q = session.query(Event) \
+            .filter(Event.status == 0)
+        new_event: Event = event_q.all()[0]
+        new_event.description = message.text if message.text != '-' else ''
+    await message.reply(MESSAGES['create_event_prompt_access_info'],
+                        reply=False)
+    await state.set_state(CreateEventStates.all()[3])
+
+
+@dp.message_handler(admin_lambda(),
+                    state=CreateEventStates.STATE_3,
+                    content_types=ContentType.TEXT)
+async def process_event_access_info(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    with session_scope() as session:
+        event_q = session.query(Event) \
+            .filter(Event.status == 0)
+        new_event: Event = event_q.all()[0]
+        new_event.access_info = message.text if message.text != '-' else ''
+    await message.reply(MESSAGES['create_event_done'],
+                        reply=False)
+    await state.set_state(None)
+
+
+@dp.message_handler(admin_lambda(),
+                    state=CreateEventStates.all())
+async def process_event_access_info(message: types.Message):
+    await message.reply(MESSAGES['create_event_oops'],
+                        reply=False)
 
 
 @dp.message_handler(admin_lambda(),
@@ -301,7 +365,7 @@ async def show_event_list_task(message: types.Message):
         if events_q.count() > 0:
             m_text = MESSAGES['show_event_menu']
             events_keyboard = events_reply_keyboard(events_q.all())
-            await state.set_state(States.all()[2])
+            await state.set_state(UserStates.all()[2])
         else:
             m_text = MESSAGES['no_current_events']
             events_keyboard = None
@@ -326,7 +390,7 @@ async def process_start_command(message: types.Message):
                         username=message.from_user.username) \
                 .insert_me(session)
             logging.info(f'user created: {user}')
-            await state.set_state(States.all()[1])  # greet and prompt for name and surname
+            await state.set_state(UserStates.all()[1])  # greet and prompt for name and surname
             await message.reply(MESSAGES['greet_new_user'],
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply=False)
@@ -335,7 +399,7 @@ async def process_start_command(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.STATE_1,
+                    state=UserStates.STATE_1,
                     content_types=ContentType.TEXT)
 async def process_name(message: types.Message):
     uid = message.from_user.id
@@ -353,7 +417,7 @@ async def process_name(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.STATE_2,
+                    state=UserStates.STATE_2,
                     content_types=ContentType.TEXT)
 async def process_event_click(message: types.Message):
     uid = message.from_user.id
@@ -393,7 +457,7 @@ async def process_event_click(message: types.Message):
         else:
             m_text = MESSAGES['invoice_prompt']
             remove_keyboard = ReplyKeyboardRemove()
-            await state.set_state(States.all()[3])
+            await state.set_state(UserStates.all()[3])
         await message.reply(m_text,
                             parse_mode=ParseMode.MARKDOWN,
                             reply=False,
@@ -401,7 +465,7 @@ async def process_event_click(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.STATE_3,
+                    state=UserStates.STATE_3,
                     content_types=[ContentType.PHOTO, ContentType.DOCUMENT])
 async def process_invoice(message: types.Message):
     uid = message.from_user.id

@@ -16,6 +16,14 @@ admin_enable = 'Ладно... будешь за админа теперь!'
 admin_disable = 'Теперь ты как все, друг!'
 admin_events = 'Список мероприятий:'
 admin_restart = "Привет, админ! Введи /start, чтобы начать."
+admin_record_deleted = 'Запись удалена!'
+
+create_event_prompt_name = 'Здорово! Напиши мне название мероприятия'
+create_event_prompt_descr = 'Введи описание мероприятия (или минус чтобы пропустить)'
+create_event_prompt_access_info = 'Отлично! Теперь напиши сообщение пользователю ' \
+                                  'об успешном завершении регистрации(не забудь вставить ссылку на канал)'
+create_event_done = 'Готово!'
+create_event_oops = 'Ой.'
 
 help_state_None = 'Привет! Для начала, напиши мне /start :)'
 help_state_1 = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
@@ -23,6 +31,7 @@ help_state_2 = 'Выберите мероприятие, на которое х�
 help_state_3 = 'Осталось прислать квитанцию! Я верю в тебя! :)'
 
 MESSAGES = {
+    # user messages
     'greet_new_user': greet_new_user,
     'pleased_to_meet_you': pleased_to_meet_you,
     'show_event_menu': show_event_menu,
@@ -32,12 +41,22 @@ MESSAGES = {
     'registration_exists': registration_exists,
     'no_current_events': no_current_events,
     'help_message': help_message,
+
     # admin messages
     'admin_enable': admin_enable,
     'admin_disable': admin_disable,
     'admin_events': admin_events,
     'admin_restart': admin_restart,
-    # Help messages by state
+    'admin_record_deleted': admin_record_deleted,
+
+    # create event steps
+    'create_event_prompt_name': create_event_prompt_name,
+    'create_event_prompt_descr': create_event_prompt_descr,
+    'create_event_prompt_access_info': create_event_prompt_access_info,
+    'create_event_done': create_event_done,
+    'create_event_oops': create_event_oops,
+
+    # help messages by state
     'help_state_None': help_state_None,
     'help_state_1': help_state_1,
     'help_state_2': help_state_2,
