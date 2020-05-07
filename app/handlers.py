@@ -442,14 +442,6 @@ async def process_invoice(message: types.Message):
 async def chat(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
     current_state = await state.get_state()
-    if current_state == States.STATE_1[0]:
-        m_text = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
-    elif current_state == States.STATE_2[0]:
-        m_text = 'Выберите мероприятие, на которое хотите зарегистрироваться :)'
-    elif current_state == States.STATE_3[0]:
-        m_text = 'Осталось прислать квитанцию! Я верю в тебя! :)'
-    else:
-        m_text = 'Привет! Для начала, напиши мне /start :)'
-
+    m_text = MESSAGES['help_' + current_state]
     await message.reply(m_text,
                         reply=False)
