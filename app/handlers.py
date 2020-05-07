@@ -48,7 +48,7 @@ async def process_cancel_command(message: types.Message):
 
 @dp.message_handler(admin_lambda(),
                     state='*',
-                    commands=['delete'])
+                    commands=['delete_enroll'])
 async def process_delete_command(message: types.Message):
     args = message.get_args().split(' ')
     if len(args) < 2:
@@ -64,6 +64,22 @@ async def process_delete_command(message: types.Message):
         if enroll_q.count() > 0:
             enroll: Enrollment = enroll_q.all()[0]
             enroll.delete_me(session)
+            await message.reply(f'Запись удалена!',
+                                reply=False)
+
+
+@dp.message_handler(admin_lambda(),
+                    state='*',
+                    commands=['delete_user'])
+async def process_delete_command(message: types.Message):
+    uid_to_delete = message.get_args()
+    with session_scope() as session:
+        user_q = session.query(User) \
+            .filter(User.uid == uid_to_delete)
+        # get one record
+        if user_q.count() > 0:
+            user: User = user_q.all()[0]
+            user.delete_me(session)
             await message.reply(f'Запись удалена!',
                                 reply=False)
 
@@ -425,12 +441,12 @@ async def process_invoice(message: types.Message):
                     content_types=ContentType.ANY)
 async def chat(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
-    awaited_state = await state.get_state()
-    if awaited_state == States.STATE_1[0]:
+    current_state = await state.get_state()
+    if current_state == States.STATE_1[0]:
         m_text = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
-    elif awaited_state == States.STATE_2[0]:
+    elif current_state == States.STATE_2[0]:
         m_text = 'Выберите мероприятие, на которое хотите зарегистрироваться :)'
-    elif awaited_state == States.STATE_3[0]:
+    elif current_state == States.STATE_3[0]:
         m_text = 'Осталось прислать квитанцию! Я верю в тебя! :)'
     else:
         m_text = 'Привет! Для начала, напиши мне /start :)'
