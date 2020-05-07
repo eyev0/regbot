@@ -8,7 +8,7 @@ from aiogram.utils.markdown import text
 from sqlalchemy import and_, or_
 
 from app import Config, dp, bot, clock
-from app.const.messages import MESSAGES, build_header, build_caption
+from app.messages import MESSAGES, build_header, build_caption
 from app.db import session_scope
 from app.db.models import User, Event, Enrollment
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
