@@ -2,15 +2,14 @@ import logging
 
 from aiogram import types
 from aiogram.types import InputFile, ParseMode, ReplyKeyboardRemove, InputMediaPhoto, InputMediaDocument, ContentType
-from aiogram.utils.emoji import emojize
 from aiogram.utils.exceptions import BadRequest, MessageNotModified
 from aiogram.utils.markdown import text
 from sqlalchemy import and_, or_
 
 from app import Config, dp, bot, clock
-from app.messages import MESSAGES, build_header, build_caption
 from app.db import session_scope
 from app.db.models import User, Event, Enrollment
+from app.messages import MESSAGES, build_header, build_caption
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
 from app.utils.utils import admin_lambda, States, EventIdHolder, WrappingListIterator, not_admin_lambda
 
@@ -73,8 +72,6 @@ async def process_delete_command(message: types.Message):
                     state='*',
                     commands=['start'])
 async def process_start_command_admin(message: types.Message):
-    uid = message.from_user.id
-    state = dp.current_state(user=uid)
     with session_scope() as session:
         events_q = session.query(Event) \
             .filter(Event.status < 9) \
@@ -318,7 +315,6 @@ async def process_start_command(message: types.Message):
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply=False)
         else:
-            await state.set_state(States.all()[2])  # show event list
             await show_event_list_task(message)
 
 
@@ -349,8 +345,8 @@ async def process_event_click(message: types.Message):
         event_q = session.query(Event) \
             .filter(Event.title == message.text)
         if event_q.count() == 0:
-            await message.reply('Нет такого..',
-                                reply=False)
+            # await message.reply('Нет такого..',
+            #                     reply=False)
             return
         event: Event = event_q.all()[0]
 
@@ -415,7 +411,7 @@ async def process_invoice(message: types.Message):
         enroll.edit_datetime = clock.now()
 
         state = dp.current_state(user=message.from_user.id)
-        await state.set_state(States.all()[3])
+        await state.set_state(None)
 
         await message.reply(MESSAGES['registration_complete'] + text(event.access_info),
                             parse_mode=ParseMode.MARKDOWN,
@@ -431,13 +427,11 @@ async def chat(message: types.Message):
     state = dp.current_state(user=message.from_user.id)
     awaited_state = await state.get_state()
     if awaited_state == States.STATE_1[0]:
-        m_text = emojize('Напишите мне, пожалуйста, свою фамилию и имя :)')
+        m_text = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
     elif awaited_state == States.STATE_2[0]:
         m_text = 'Выберите мероприятие, на которое хотите зарегистрироваться :)'
     elif awaited_state == States.STATE_3[0]:
         m_text = 'Осталось прислать квитанцию! Я верю в тебя! :)'
-        # t = text(emojize('На этом всё, дорогой друг! Спасибо, что ты с нами! '
-        #                  ':heart: :new_moon_with_face:'))
     else:
         m_text = 'Привет! Для начала, напиши мне /start :)'
 

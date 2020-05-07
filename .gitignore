@@ -229,5 +229,4 @@ cython_debug/
 
 /data/arc/
 data/users.db
-db_scratch.py
 data/f
