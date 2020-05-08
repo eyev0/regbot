@@ -15,6 +15,12 @@ class UserStates(Helper):
     USER_STATE_3 = ListItem()
 
 
+class AdminMenuStates(Helper):
+    mode = HelperMode.snake_case
+
+    ADMIN_MENU_STATE_0 = ListItem()
+
+
 class CreateEventStates(Helper):
     mode = HelperMode.snake_case
 
@@ -22,10 +28,6 @@ class CreateEventStates(Helper):
     CREATE_EVENT_STATE_1 = ListItem()
     CREATE_EVENT_STATE_2 = ListItem()
     CREATE_EVENT_STATE_3 = ListItem()
-
-
-class EventIdHolder(object):
-    event_id = None
 
 
 class WrappingListIterator(object):

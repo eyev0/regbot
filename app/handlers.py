@@ -11,8 +11,8 @@ from app.db import session_scope
 from app.db.models import User, Event, Enrollment
 from app.messages import MESSAGES, build_header, build_caption
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
-from app.utils.utils import admin_lambda, UserStates, EventIdHolder, WrappingListIterator, not_admin_lambda, \
-    CreateEventStates
+from app.utils.utils import admin_lambda, UserStates, WrappingListIterator, not_admin_lambda, \
+    CreateEventStates, AdminMenuStates
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
 
@@ -96,8 +96,7 @@ async def process_create_event_command(message: types.Message):
     await state.set_state(CreateEventStates.all()[1])
 
 
-@dp.message_handler(admin_lambda(),
-                    state=CreateEventStates.CREATE_EVENT_STATE_1 | CreateEventStates.CREATE_EVENT_STATE_2 | CreateEventStates.CREATE_EVENT_STATE_3,
+@dp.message_handler(state=CreateEventStates.CREATE_EVENT_STATE_1 | CreateEventStates.CREATE_EVENT_STATE_2 | CreateEventStates.CREATE_EVENT_STATE_3,
                     content_types=ContentType.TEXT)
 async def process_create_event_data(message: types.Message):
     uid = message.from_user.id
@@ -125,8 +124,7 @@ async def process_create_event_data(message: types.Message):
         await state.set_data(None)
 
 
-@dp.message_handler(admin_lambda(),
-                    state=CreateEventStates.all())
+@dp.message_handler(state=CreateEventStates.all())
 async def process_event_access_info(message: types.Message):
     await message.reply(MESSAGES['create_event_oops'],
                         reply=False)
@@ -136,6 +134,9 @@ async def process_event_access_info(message: types.Message):
                     state='*',
                     commands=['start'])
 async def process_start_command_admin(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    await state.set_state(AdminMenuStates.all()[0])
     with session_scope() as session:
         events_q = session.query(Event) \
             .filter(Event.status < 9) \
@@ -148,13 +149,18 @@ async def process_start_command_admin(message: types.Message):
                             reply_markup=events_keyboard)
 
 
-@dp.message_handler(admin_lambda(),
-                    state='*')
-async def process_event_click_admin(message: types.Message):
+async def send_remove_reply_keyboard(message):
     remove_keyboard_stub: types.Message = await message.reply('...',
                                                               reply=False,
                                                               reply_markup=ReplyKeyboardRemove())
     await remove_keyboard_stub.delete()
+
+
+@dp.message_handler(admin_lambda(),
+                    state=AdminMenuStates.ADMIN_MENU_STATE_0)
+async def process_event_click_admin(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
 
     with session_scope() as session:
         event_q = session.query(Event) \
@@ -163,13 +169,16 @@ async def process_event_click_admin(message: types.Message):
             await message.reply('Нет такого..',
                                 reply=False)
             return
+        else:
+            await send_remove_reply_keyboard(message)
         event: Event = event_q.all()[0]
-        EventIdHolder.event_id = event.id
+        data = {'event_id': event.id}
+        await state.set_data(data)
 
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == EventIdHolder.event_id) \
+            .filter(Event.id == data['event_id']) \
             .order_by(Enrollment.edit_datetime.desc())
         # get all user and enrollment data
         users_enrolls_list, count = users_enrolls_q.all(), users_enrolls_q.count()
@@ -224,27 +233,21 @@ async def process_event_click_admin(message: types.Message):
                                     reply_markup=keyboard_scroll)
 
 
-@dp.callback_query_handler(lambda c: EventIdHolder.event_id is None,
-                           state='*')
-async def process_callback_restart_prompt(callback_query: types.CallbackQuery):
-    await callback_query.message.reply(MESSAGES['admin_restart'],
-                                       reply=False)
-    await bot.answer_callback_query(callback_query.id)
-    return
-
-
 @dp.callback_query_handler(lambda c: c.data in ['refresh'],
-                           state='*')
+                           state=AdminMenuStates.ADMIN_MENU_STATE_0)
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
+    uid = callback_query.from_user.id
+    state = dp.current_state(user=uid)
+    data = await state.get_data()
     with session_scope() as session:
         event_q = session.query(Event) \
-            .filter(Event.id == EventIdHolder.event_id)
+            .filter(Event.id == data['event_id'])
         event: Event = event_q.all()[0]
 
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == EventIdHolder.event_id) \
+            .filter(Event.id == data['event_id']) \
             .order_by(Enrollment.edit_datetime.desc())
         # get all user and enrollment data
         users_enrolls_list, count = users_enrolls_q.all(), users_enrolls_q.count()
@@ -279,14 +282,17 @@ def media_with_caption(enroll_complete, file_type, file_id, caption):
 
 
 @dp.callback_query_handler(lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
-                           state='*')
+                           state=AdminMenuStates.ADMIN_MENU_STATE_0)
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
+    uid = callback_query.from_user.id
+    state = dp.current_state(user=uid)
+    data = await state.get_data()
     with session_scope() as session:
         # get all user and enrollment data
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == EventIdHolder.event_id) \
+            .filter(Event.id == data['event_id']) \
             .order_by(Enrollment.edit_datetime.desc())
         users_enrolls_list = users_enrolls_q.all()
         # get one record
@@ -313,6 +319,14 @@ async def process_callback_button_scroll(callback_query: types.CallbackQuery):
                 reply_markup=keyboard_scroll)
 
         await bot.answer_callback_query(callback_query.id)
+
+
+@dp.callback_query_handler(state='*')
+async def process_callback_restart_prompt(callback_query: types.CallbackQuery):
+    await callback_query.message.reply(MESSAGES['admin_restart'],
+                                       reply=False)
+    await bot.answer_callback_query(callback_query.id)
+    return
 
 
 # ##################################################################################################################################################
