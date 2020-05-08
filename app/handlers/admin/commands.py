@@ -71,11 +71,14 @@ async def process_delete_user_command(message: types.Message):
 async def process_admin_command(message: types.Message):
     magic_word = message.get_args()
     uid = message.from_user.id
+    state = dp.current_state(user=uid)
     if magic_word == 'pls':
         if uid not in Config.admin_ids:
             Config.admin_ids.append(uid)
+            await state.set_state(None)
             await message.reply(MESSAGES['admin_enable'], reply=False)
     elif magic_word == 'no':
         if uid in Config.admin_ids:
             Config.admin_ids.remove(uid)
+            await state.set_state(None)
             await message.reply(MESSAGES['admin_disable'], reply=False)

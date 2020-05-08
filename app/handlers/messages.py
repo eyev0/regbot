@@ -15,6 +15,7 @@ help_message = 'Это - *бот-помощник* для регистрации
 admin_enable = 'Ладно... будешь за админа теперь!'
 admin_disable = 'Теперь ты как все, друг!'
 admin_events = 'Список мероприятий:'
+admin_event_not_found = 'Нет такого..'
 admin_restart = "Привет, админ! Введи /start, чтобы начать."
 admin_record_deleted = 'Запись удалена!'
 
@@ -46,6 +47,7 @@ MESSAGES = {
     'admin_enable': admin_enable,
     'admin_disable': admin_disable,
     'admin_events': admin_events,
+    'admin_event_not_found': admin_event_not_found,
     'admin_restart': admin_restart,
     'admin_record_deleted': admin_record_deleted,
 

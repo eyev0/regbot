@@ -7,9 +7,8 @@ from app.db.models import Enrollment, User, Event
 from app.db.util import WrappingListIterator
 from app.handlers import AdminMenuStates
 from app.handlers.admin import kitty
-from app.handlers.keyboards import keyboard_refresh, keyboard_scroll
-from app.handlers.messages import build_header, build_caption
-from app.handlers.util import send_remove_reply_keyboard
+from app.handlers.keyboards import keyboard_refresh, keyboard_scroll, send_remove_reply_keyboard
+from app.handlers.messages import build_header, build_caption, MESSAGES
 
 
 @dp.message_handler(state=AdminMenuStates.ADMIN_MENU_STATE_0)
@@ -21,7 +20,7 @@ async def process_event_click_admin(message: types.Message):
         event_q = session.query(Event) \
             .filter(Event.title == message.text)
         if event_q.count() == 0:
-            await message.reply('Нет такого..',
+            await message.reply(MESSAGES['admin_event_not_found'],
                                 reply=False)
             return
         else:
