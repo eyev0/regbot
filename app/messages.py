@@ -19,8 +19,8 @@ admin_restart = "Привет, админ! Введи /start, чтобы нач�
 admin_record_deleted = 'Запись удалена!'
 
 create_event_prompt_name = 'Здорово! Напиши мне название мероприятия'
-create_event_prompt_state_2 = 'Введи описание мероприятия (или минус чтобы пропустить)'
-create_event_prompt_state_3 = 'Отлично! Теперь напиши сообщение пользователю ' \
+create_event_prompt_data_2 = 'Введи описание мероприятия (или минус чтобы пропустить)'
+create_event_prompt_data_3 = 'Отлично! Теперь напиши сообщение пользователю ' \
                                   'об успешном завершении регистрации(не забудь вставить ссылку на канал)'
 create_event_done = 'Готово!'
 create_event_oops = 'Ой.'
@@ -51,8 +51,8 @@ MESSAGES = {
 
     # create event steps
     'create_event_prompt_name': create_event_prompt_name,
-    'create_event_prompt_descr': create_event_prompt_descr,
-    'create_event_prompt_access_info': create_event_prompt_access_info,
+    'create_event_prompt_data_2': create_event_prompt_data_2,
+    'create_event_prompt_data_3': create_event_prompt_data_3,
     'create_event_done': create_event_done,
     'create_event_oops': create_event_oops,
 
