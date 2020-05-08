@@ -96,17 +96,46 @@ async def process_create_event_command(message: types.Message):
 
 
 @dp.message_handler(admin_lambda(),
+                    state=CreateEventStates.STATE_1 | CreateEventStates.STATE_2 | CreateEventStates.STATE_3,
+                    content_types=ContentType.TEXT)
+async def process_create_event_data(message: types.Message):
+    uid = message.from_user.id
+    input_data = message.text if message.text != '-' else ''
+    state = dp.current_state(user=uid)
+    state_number = int(state[-1:])
+    state_data = await state.get_data({})
+    state_data[state_number] = input_data
+    await state.set_data(state_data)
+    if state_number < 3:
+        await state.set_state(CreateEventStates.all()[state_number + 1])
+        await message.reply(MESSAGES['create_event_prompt_state_' + str(state_number)],
+                            reply=False)
+    else:
+
+        with session_scope() as session:
+            event: Event = Event(title=state_data[1],
+                                 description=state_data[2],
+                                 access_info=state_data[3]) \
+                .insert_me(session)
+        await message.reply(MESSAGES['create_event_done'],
+                            reply=False)
+        await state.set_state(None)
+        await state.set_data(None)
+
+
+@dp.message_handler(admin_lambda(),
                     state=CreateEventStates.STATE_1,
                     content_types=ContentType.TEXT)
 async def process_event_name(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
     with session_scope() as session:
-        Event(title=message.text)\
+        event: Event = Event(title=message.text)\
             .insert_me(session)
     await message.reply(MESSAGES['create_event_prompt_descr'],
                         reply=False)
     await state.set_state(CreateEventStates.all()[2])
+    await state.set_data({'new_event_id': event.id})
 
 
 @dp.message_handler(admin_lambda(),
@@ -115,9 +144,10 @@ async def process_event_name(message: types.Message):
 async def process_event_descr(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
+    data = await state.get_data()
     with session_scope() as session:
         event_q = session.query(Event) \
-            .filter(Event.status == 0)
+            .filter(Event.id == data['new_event_id'])
         new_event: Event = event_q.all()[0]
         new_event.description = message.text if message.text != '-' else ''
     await message.reply(MESSAGES['create_event_prompt_access_info'],
@@ -131,14 +161,16 @@ async def process_event_descr(message: types.Message):
 async def process_event_access_info(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
+    data = await state.get_data()
     with session_scope() as session:
         event_q = session.query(Event) \
-            .filter(Event.status == 0)
+            .filter(Event.id == data['new_event_id'])
         new_event: Event = event_q.all()[0]
         new_event.access_info = message.text if message.text != '-' else ''
     await message.reply(MESSAGES['create_event_done'],
                         reply=False)
     await state.set_state(None)
+    await state.set_data(None)
 
 
 @dp.message_handler(admin_lambda(),
@@ -240,16 +272,18 @@ async def process_event_click_admin(message: types.Message):
                                     reply_markup=keyboard_scroll)
 
 
-@dp.callback_query_handler(admin_lambda(),
-                           lambda c: c.data in ['refresh'],
+@dp.callback_query_handler(lambda c: EventIdHolder.event_id is None,
+                           state='*')
+async def process_callback_restart_prompt(callback_query: types.CallbackQuery):
+    await callback_query.message.reply(MESSAGES['admin_restart'],
+                                       reply=False)
+    await bot.answer_callback_query(callback_query.id)
+    return
+
+
+@dp.callback_query_handler(lambda c: c.data in ['refresh'],
                            state='*')
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
-    if EventIdHolder.event_id is None:
-        await callback_query.message.reply(MESSAGES['admin_restart'],
-                                           reply=False)
-        await bot.answer_callback_query(callback_query.id)
-        return
-
     with session_scope() as session:
         event_q = session.query(Event) \
             .filter(Event.id == EventIdHolder.event_id)
@@ -292,16 +326,9 @@ def media_with_caption(enroll_complete, file_type, file_id, caption):
     return obj
 
 
-@dp.callback_query_handler(admin_lambda(),
-                           lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
+@dp.callback_query_handler(lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
                            state='*')
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
-    if EventIdHolder.event_id is None:
-        await callback_query.message.reply(MESSAGES['admin_restart'],
-                                           reply=False)
-        await bot.answer_callback_query(callback_query.id)
-        return
-
     with session_scope() as session:
         # get all user and enrollment data
         users_enrolls_q = session.query(User, Enrollment) \
