@@ -11,7 +11,7 @@ from app.db import session_scope
 from app.db.models import User, Event, Enrollment
 from app.messages import MESSAGES, build_header, build_caption
 from app.utils.keyboards import events_reply_keyboard, keyboard_refresh, keyboard_scroll
-from app.utils.utils import admin_lambda, States, EventIdHolder, WrappingListIterator, not_admin_lambda, \
+from app.utils.utils import admin_lambda, UserStates, EventIdHolder, WrappingListIterator, not_admin_lambda, \
     CreateEventStates
 
 kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
@@ -344,7 +344,7 @@ async def show_event_list_task(message: types.Message):
         if events_q.count() > 0:
             m_text = MESSAGES['show_event_menu']
             events_keyboard = events_reply_keyboard(events_q.all())
-            await state.set_state(States.all()[2])
+            await state.set_state(UserStates.all()[2])
         else:
             m_text = MESSAGES['no_current_events']
             events_keyboard = None
@@ -369,7 +369,7 @@ async def process_start_command(message: types.Message):
                         username=message.from_user.username) \
                 .insert_me(session)
             logging.info(f'user created: {user}')
-            await state.set_state(States.all()[1])  # greet and prompt for name and surname
+            await state.set_state(UserStates.all()[1])  # greet and prompt for name and surname
             await message.reply(MESSAGES['greet_new_user'],
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply=False)
@@ -378,7 +378,7 @@ async def process_start_command(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.USER_STATE_1,
+                    state=UserStates.USER_STATE_1,
                     content_types=ContentType.TEXT)
 async def process_name(message: types.Message):
     uid = message.from_user.id
@@ -396,7 +396,7 @@ async def process_name(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.USER_STATE_2,
+                    state=UserStates.USER_STATE_2,
                     content_types=ContentType.TEXT)
 async def process_event_click(message: types.Message):
     uid = message.from_user.id
@@ -436,7 +436,7 @@ async def process_event_click(message: types.Message):
         else:
             m_text = MESSAGES['invoice_prompt']
             remove_keyboard = ReplyKeyboardRemove()
-            await state.set_state(States.all()[3])
+            await state.set_state(UserStates.all()[3])
         await message.reply(m_text,
                             parse_mode=ParseMode.MARKDOWN,
                             reply=False,
@@ -444,7 +444,7 @@ async def process_event_click(message: types.Message):
 
 
 @dp.message_handler(not_admin_lambda(),
-                    state=States.USER_STATE_3,
+                    state=UserStates.USER_STATE_3,
                     content_types=[ContentType.PHOTO, ContentType.DOCUMENT])
 async def process_invoice(message: types.Message):
     uid = message.from_user.id
