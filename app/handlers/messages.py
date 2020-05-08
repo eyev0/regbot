@@ -25,7 +25,7 @@ create_event_prompt_data_3 = 'Отлично! Теперь напиши сооб
 create_event_done = 'Готово!'
 create_event_oops = 'Ой.'
 
-help_state_None = 'Привет! Для начала, напиши мне /start :)'
+help_None = 'Привет! Для начала, напиши мне /start :)'
 help_state_1 = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
 help_state_2 = 'Выберите мероприятие, на которое хотите зарегистрироваться :)'
 help_state_3 = 'Осталось прислать квитанцию! Я верю в тебя! :)'
@@ -57,7 +57,7 @@ MESSAGES = {
     'create_event_oops': create_event_oops,
 
     # help messages by state
-    'help_state_None': help_state_None,
+    'help_None': help_None,
     'help_state_1': help_state_1,
     'help_state_2': help_state_2,
     'help_state_3': help_state_3,
