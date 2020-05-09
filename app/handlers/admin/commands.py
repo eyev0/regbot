@@ -2,10 +2,10 @@ from aiogram import types
 
 from app import dp, Config
 from app.db import session_scope
-from app.db.models import Enrollment, User, Event
-from app.handlers.messages import MESSAGES
-from app.handlers.keyboards import events_reply_keyboard
+from app.db.models import Enrollment, User
 from app.handlers import AdminMenuStates
+from app.handlers.admin import show_menu_task_admin
+from app.handlers.messages import MESSAGES
 from app.handlers.util import admin_lambda
 
 
@@ -16,16 +16,7 @@ async def process_start_command_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
     await state.set_state(AdminMenuStates.all()[0])
-    with session_scope() as session:
-        events_q = session.query(Event) \
-            .filter(Event.status < 9) \
-            .order_by(Event.edit_datetime.desc())
-
-        events_keyboard = events_reply_keyboard(events_q.all())
-
-        await message.reply(MESSAGES['admin_events'],
-                            reply=False,
-                            reply_markup=events_keyboard)
+    await show_menu_task_admin(message)
 
 
 @dp.message_handler(admin_lambda(),

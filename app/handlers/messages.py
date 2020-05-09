@@ -14,13 +14,14 @@ help_message = 'Это - *бот-помощник* для регистрации
 
 admin_enable = 'Ладно... будешь за админа теперь!'
 admin_disable = 'Теперь ты как все, друг!'
-admin_events = 'Список мероприятий:'
+admin_events_menu = 'Список мероприятий:'
+admin_event_submenu = 'Что будем делать?'
 admin_event_not_found = 'Нет такого..'
 admin_restart = "Привет, админ! Введи /start, чтобы начать."
 admin_record_deleted = 'Запись удалена!'
 
-create_event_prompt_name = 'Здорово! Напиши мне название мероприятия'
-create_event_prompt_data_2 = 'Введи описание мероприятия (или минус чтобы пропустить)'
+create_event_prompt_data_1 = 'Название мероприятия'
+create_event_prompt_data_2 = 'Короткое описание мероприятия (или минус чтобы пропустить)'
 create_event_prompt_data_3 = 'Отлично! Теперь напиши сообщение пользователю ' \
                                   'об успешном завершении регистрации(не забудь вставить ссылку на канал)'
 create_event_done = 'Готово!'
@@ -46,13 +47,14 @@ MESSAGES = {
     # admin messages
     'admin_enable': admin_enable,
     'admin_disable': admin_disable,
-    'admin_events': admin_events,
+    'admin_events_menu': admin_events_menu,
+    'admin_event_submenu': admin_event_submenu,
     'admin_event_not_found': admin_event_not_found,
     'admin_restart': admin_restart,
     'admin_record_deleted': admin_record_deleted,
 
     # create event steps
-    'create_event_prompt_name': create_event_prompt_name,
+    'create_event_prompt_data_1': create_event_prompt_data_1,
     'create_event_prompt_data_2': create_event_prompt_data_2,
     'create_event_prompt_data_3': create_event_prompt_data_3,
     'create_event_done': create_event_done,

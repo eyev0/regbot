@@ -15,20 +15,20 @@ from app.handlers.messages import build_header, build_caption, MESSAGES
 
 
 @dp.callback_query_handler(lambda c: c.data in ['refresh'],
-                           state=AdminMenuStates.ADMIN_MENU_STATE_0)
+                           state=AdminMenuStates.ADMIN_MENU_STATE_1)
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
-    data = await state.get_data()
+    state_data = await state.get_data()
     with session_scope() as session:
         event_q = session.query(Event) \
-            .filter(Event.id == data['event_id'])
+            .filter(Event.id == state_data['event_id'])
         event: Event = event_q.all()[0]
 
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == data['event_id']) \
+            .filter(Event.id == state_data['event_id']) \
             .order_by(Enrollment.edit_datetime.desc())
         # get all user and enrollment data
         users_enrolls_list, count = users_enrolls_q.all(), users_enrolls_q.count()
@@ -51,17 +51,17 @@ async def process_callback_button_refresh_header(callback_query: types.CallbackQ
 
 
 @dp.callback_query_handler(lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
-                           state=AdminMenuStates.ADMIN_MENU_STATE_0)
+                           state=AdminMenuStates.ADMIN_MENU_STATE_1)
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
-    data = await state.get_data()
+    state_data = await state.get_data()
     with session_scope() as session:
         # get all user and enrollment data
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == data['event_id']) \
+            .filter(Event.id == state_data['event_id']) \
             .order_by(Enrollment.edit_datetime.desc())
         users_enrolls_list = users_enrolls_q.all()
         # get one record

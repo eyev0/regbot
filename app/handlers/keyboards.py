@@ -4,21 +4,17 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 # keyboard_admin_menu = ReplyKeyboardMarkup()
 
+button_create_new = KeyboardButton('Создать новое')
+
 button_view_enrolls = KeyboardButton('Список регистраций')
-button_create_new = KeyboardButton('Создать новый ивент')
 button_change_status = KeyboardButton('Изменить статус ивента')
 button_publish = KeyboardButton('Отправить уведомление юзерам')
+button_back_to_events = KeyboardButton('Назад')
 keyboard_admin_menu = ReplyKeyboardMarkup()
 keyboard_admin_menu.row(button_view_enrolls)
-keyboard_admin_menu.row(button_create_new)
 keyboard_admin_menu.row(button_change_status)
 keyboard_admin_menu.row(button_publish)
-
-# KEYBOARDS = {
-#     AdminMenuStates.ADMIN_MENU_STATE_0: keyboard_admin_menu,
-# }
-
-##
+keyboard_admin_menu.row(button_back_to_events)
 
 
 button_rewind_back = InlineKeyboardButton('<<', callback_data='rewind_back')
@@ -39,7 +35,7 @@ keyboard_refresh = InlineKeyboardMarkup().row(button_refresh)
 max_buttons_in_row = 1
 
 
-def events_reply_keyboard(events_list):
+def events_reply_keyboard(events_list, admin_mode=False):
     if len(events_list) == 0:
         return None
     i = 0
@@ -55,15 +51,10 @@ def events_reply_keyboard(events_list):
     keyboard = ReplyKeyboardMarkup()
     for row in row_list:
         keyboard.row(*row)
+    if admin_mode:
+        keyboard.row(button_create_new)
 
     return keyboard
-
-
-async def send_reply_keyboard(message: types.Message, state):
-    send_keyboard_stub: types.Message = await message.reply('...',
-                                                            reply=False,
-                                                            reply_markup=KEYBOARDS[state])
-    await send_keyboard_stub.delete()
 
 
 async def send_remove_reply_keyboard(message: types.Message):
