@@ -8,8 +8,9 @@ from app.db.models import Enrollment, User, Event
 from app.db.util import WrappingListIterator
 from app.handlers import AdminMenuStates, CreateEventStates
 from app.handlers.admin import kitty, process_start_command_admin, show_menu_task_admin
-from app.handlers.keyboards import keyboard_refresh, keyboard_scroll, send_remove_reply_keyboard, button_create_new, \
-    keyboard_admin_menu, button_view_enrolls, button_change_status, button_publish, button_back_to_events
+from app.handlers.keyboards import keyboard_refresh, keyboard_scroll, button_create_new, \
+    keyboard_admin_menu, button_view_enrolls, button_change_status, button_publish, button_back_to_events, \
+    button_cancel, keyboard_cancel
 from app.handlers.messages import build_header, build_caption, MESSAGES
 
 
@@ -147,17 +148,22 @@ async def process_create_event_data(message: types.Message):
     state = dp.current_state(user=uid)
     state_number = int(str(await state.get_state())[-1:])
     state_data = await state.get_data() or {}
-    if state_number == 0:
-        await send_remove_reply_keyboard(message)
-    else:
+    if state_number > 0:
         input_data = message.text if message.text != '-' else ''
+        if input_data == button_cancel.text:
+            await state.set_state(AdminMenuStates.all()[0])
+            await state.set_data({})
+            await process_start_command_admin(message)
+            return
         state_data[state_number] = input_data
         await state.set_data(state_data)
+
     if state_number < 3:
         state_number += 1
         await state.set_state(CreateEventStates.all()[state_number])
         await message.reply(MESSAGES['create_event_prompt_data_' + str(state_number)],
-                            reply=False)
+                            reply=False,
+                            reply_markup=keyboard_cancel)
     else:
         with session_scope() as session:
             Event(title=state_data[1],

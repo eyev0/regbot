@@ -6,6 +6,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 button_create_new = KeyboardButton('Создать новое')
 
+button_cancel = KeyboardButton('Отмена')
+keyboard_cancel = ReplyKeyboardMarkup().row(button_cancel)
+
 button_view_enrolls = KeyboardButton('Список регистраций')
 button_change_status = KeyboardButton('Изменить статус ивента')
 button_publish = KeyboardButton('Отправить уведомление юзерам')
