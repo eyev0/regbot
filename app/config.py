@@ -10,7 +10,7 @@ class Config(object):
     # Proxy
     # PROXY_PROTOCOL = 'http'
     PROXY_PROTOCOL = 'socks5'
-    PROXY_IP = '148.251.234.93'
+    PROXY_IP = '82.148.18.142'
     PROXY_PORT = '1080'
     PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
 
