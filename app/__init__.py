@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 
 import pytz
@@ -10,9 +9,6 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from app.config import Config
 
 clock = datetime(2020, 1, 1, tzinfo=pytz.timezone('Europe/Moscow'))
-
-if os.path.exists(Config.log_path):
-    os.rename(Config.log_path, Config.log_path + '.' + str(clock.now())[:19])
 
 logging.basicConfig(filename=Config.log_path,
                     format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
