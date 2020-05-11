@@ -16,8 +16,8 @@ class Config(object):
     # PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
 
     # admins
-    # admin_ids = [119707338, 296145754]
-    admin_ids = [296145754, ]  # Lera
+    admin_ids = [119707338, 296145754]
+    # admin_ids = [296145754, ]  # Lera
 
     RANDOM_KITTEN_JPG = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Red_Kitten_01.jpg/' \
                         '320px-Red_Kitten_01.jpg'
