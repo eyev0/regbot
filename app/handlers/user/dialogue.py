@@ -100,6 +100,7 @@ async def process_invoice(message: types.Message):
         enroll.file_id = file_id
         enroll.complete = True
         enroll.edit_datetime = clock.now()
+        logging.info(f'enrollment updated! got invoice: {enroll}')
 
         state = dp.current_state(user=message.from_user.id)
         await state.set_state(None)

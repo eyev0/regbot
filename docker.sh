@@ -34,6 +34,8 @@ if [ "$3" == "kill" ]; then
 fi
 
 echo
-echo "docker container run -d -it -v ~/db/$1:/db -v ~/logs/$1:/log -v ~/FSMstorage:/FSMstorage --name $1 $1:$2"
+# echo "docker container run -d -it -v ~/db/$1:/db -v ~/logs/$1:/log -v ~/FSMstorage:/FSMstorage --name $1 $1:$2"
+echo "docker container run -d -it -v ~/$1:/vol --name $1 $1:$2"
 echo
-docker container run -d -it -v ~/db/"$1":/db -v ~/logs/"$1":/log -v ~/FSMstorage:/FSMstorage --name "$1" "$1:$2"
+# docker container run -d -it -v ~/db/"$1":/db -v ~/logs/"$1":/log -v ~/FSMstorage:/FSMstorage --name "$1" "$1:$2"
+docker container run -d -it -v ~/"$1":/vol --name "$1" "$1:$2"

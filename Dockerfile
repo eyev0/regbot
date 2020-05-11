@@ -8,8 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pip install --no-cache-dir -e .
 
-RUN mkdir /db
-RUN mkdir /log
-RUN mkdir /FSMstorage
+RUN mkdir /vol
 
 CMD [ "python", "./app/bot.py" ]
