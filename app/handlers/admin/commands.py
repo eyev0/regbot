@@ -3,20 +3,23 @@ from aiogram import types
 from app import dp, config
 from app.db import session_scope
 from app.db.models import Enrollment, User
-from app.handlers import AdminMenuStates
-from app.handlers.admin import show_menu_task_admin
+from app.handlers import MenuStates
+from app.handlers.admin import show_events_task_admin
+from app.handlers.keyboards import button_back_to_events
 from app.handlers.messages import MESSAGES
 from app.handlers.util import admin_lambda
 
 
+@dp.message_handler(lambda m: m.text == button_back_to_events.text,
+                    state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
 @dp.message_handler(admin_lambda(),
                     state='*',
                     commands=['start'])
 async def process_start_command_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    await state.set_state(AdminMenuStates.all()[0])
-    await show_menu_task_admin(message)
+    await state.set_state(MenuStates.all()[0])
+    await show_events_task_admin(message)
 
 
 @dp.message_handler(admin_lambda(),

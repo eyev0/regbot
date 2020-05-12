@@ -8,14 +8,14 @@ from app import dp, bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.db.util import WrappingListIterator
-from app.handlers import AdminMenuStates
+from app.handlers import MenuStates
 from app.handlers.admin.util import media_with_caption, kitty
 from app.handlers.keyboards import keyboard_refresh, keyboard_scroll
 from app.handlers.messages import build_header, build_caption, MESSAGES
 
 
 @dp.callback_query_handler(lambda c: c.data in ['refresh'],
-                           state=AdminMenuStates.ADMIN_MENU_STATE_1)
+                           state=MenuStates.MENU_STATE_1_EVENT)
 async def process_callback_button_refresh_header(callback_query: types.CallbackQuery):
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
@@ -50,7 +50,7 @@ async def process_callback_button_refresh_header(callback_query: types.CallbackQ
 
 
 @dp.callback_query_handler(lambda c: c.data in ['back', 'forward', 'rewind_back', 'rewind_forward'],
-                           state=AdminMenuStates.ADMIN_MENU_STATE_1)
+                           state=MenuStates.MENU_STATE_1_EVENT)
 async def process_callback_button_scroll(callback_query: types.CallbackQuery):
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)

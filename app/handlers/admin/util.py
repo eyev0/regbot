@@ -24,15 +24,22 @@ def media_with_caption(enroll_complete, file_type, file_id, caption):
 kitty = InputFile.from_url(RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
 
 
-async def show_menu_task_admin(message: types.Message):
+async def show_events_task_admin(message: types.Message,
+                                 archived=False):
     with session_scope() as session:
-        events_q = session.query(Event) \
-            .filter(Event.status < 9) \
-            .order_by(Event.edit_datetime.desc())
+        events_q = session.query(Event)
+        if archived:
+            m_text = MESSAGES['admin_archive']
+            events_q = events_q.filter(Event.status == 10)
+        else:
+            m_text = MESSAGES['admin_events']
+            events_q = events_q.filter(Event.status <= 9)
+        events_q = events_q.order_by(Event.edit_datetime.desc())
 
         events_keyboard = events_reply_keyboard(events_q.all(),
-                                                admin_mode=True)
-        await message.reply(MESSAGES['admin_events_menu'],
+                                                admin_mode=True,
+                                                archived=archived)
+        await message.reply(m_text,
                             reply=False,
                             reply_markup=events_keyboard)
 

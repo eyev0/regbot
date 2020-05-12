@@ -6,17 +6,58 @@ from app import dp, bot
 from app.db import session_scope
 from app.db.models import Enrollment, User, Event
 from app.db.util import WrappingListIterator
-from app.handlers import AdminMenuStates, CreateEventStates
-from app.handlers.admin import kitty, process_start_command_admin, show_menu_task_admin
+from app.handlers import MenuStates, CreateEventStates
+from app.handlers.admin import kitty, process_start_command_admin, show_events_task_admin
 from app.handlers.keyboards import keyboard_refresh, keyboard_scroll, button_create_new, \
     keyboard_admin_menu, button_view_enrolls, button_change_status, button_publish, button_back_to_events, \
-    button_cancel, keyboard_cancel
+    button_cancel, keyboard_cancel, button_view_archive
 from app.handlers.messages import build_header, build_caption, MESSAGES
 
 
-@dp.message_handler(lambda m: m.text != button_create_new.text,
-                    state=AdminMenuStates.ADMIN_MENU_STATE_0,
-                    content_types=ContentType.TEXT)
+@dp.message_handler(lambda m: m.text == button_create_new.text,
+                    state=MenuStates.MENU_STATE_0)
+@dp.message_handler(state=CreateEventStates.all())
+async def process_create_event_data(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    state_number = int(str(await state.get_state())[-1:])
+    state_data = await state.get_data() or {}
+    if state_number > 0:
+        input_data = message.text if message.text != '-' else ''
+        if input_data == button_cancel.text:
+            await state.set_state(MenuStates.all()[0])
+            await state.set_data({})
+            await process_start_command_admin(message)
+            return
+        state_data[state_number] = input_data
+        await state.set_data(state_data)
+
+    if state_number < 3:
+        state_number += 1
+        await state.set_state(CreateEventStates.all()[state_number])
+        await message.reply(MESSAGES['create_event_prompt_data_' + str(state_number)],
+                            reply=False,
+                            reply_markup=keyboard_cancel)
+    else:
+        with session_scope() as session:
+            Event(title=state_data[1],
+                  description=state_data[2],
+                  access_info=state_data[3]) \
+                .insert_me(session)
+        await message.reply(MESSAGES['create_event_done'],
+                            reply=False)
+        await state.set_state(MenuStates.all()[0])
+        await state.set_data({})
+        await process_start_command_admin(message)
+
+
+@dp.message_handler(lambda m: m.text == button_view_archive.text,
+                    state=MenuStates.MENU_STATE_0)
+async def process_view_archive_admin(message: types.Message):
+    await show_events_task_admin(message, archived=True)
+
+
+@dp.message_handler(state=MenuStates.MENU_STATE_0)
 async def process_event_click_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
@@ -30,7 +71,7 @@ async def process_event_click_admin(message: types.Message):
             return
         event: Event = event_q.all()[0]
         data = {'event_id': event.id}
-        await state.set_state(AdminMenuStates.all()[1])
+        await state.set_state(MenuStates.all()[1])
         await state.set_data(data)
         await message.reply(MESSAGES['admin_event_submenu'],
                             reply=False,
@@ -38,8 +79,7 @@ async def process_event_click_admin(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_view_enrolls.text,
-                    state=AdminMenuStates.ADMIN_MENU_STATE_1,
-                    content_types=ContentType.TEXT)
+                    state=MenuStates.MENU_STATE_1_EVENT)
 async def process_view_enrolls_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
@@ -111,8 +151,7 @@ async def process_view_enrolls_admin(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_change_status.text,
-                    state=AdminMenuStates.ADMIN_MENU_STATE_1,
-                    content_types=ContentType.TEXT)
+                    state=MenuStates.MENU_STATE_1_EVENT)
 async def process_change_status_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
@@ -121,8 +160,7 @@ async def process_change_status_admin(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_publish.text,
-                    state=AdminMenuStates.ADMIN_MENU_STATE_1,
-                    content_types=ContentType.TEXT)
+                    state=MenuStates.MENU_STATE_1_EVENT)
 async def process_publish_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
@@ -131,46 +169,9 @@ async def process_publish_admin(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_back_to_events.text,
-                    state=AdminMenuStates.ADMIN_MENU_STATE_1,
-                    content_types=ContentType.TEXT)
+                    state=MenuStates.MENU_STATE_1_EVENT)
 async def process_back_to_events_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    await state.set_state(AdminMenuStates.all()[0])
-    await show_menu_task_admin(message)
-
-
-@dp.message_handler(state=AdminMenuStates.ADMIN_MENU_STATE_0 | CreateEventStates.all(),
-                    content_types=ContentType.TEXT)
-async def process_create_event_data(message: types.Message):
-    uid = message.from_user.id
-    state = dp.current_state(user=uid)
-    state_number = int(str(await state.get_state())[-1:])
-    state_data = await state.get_data() or {}
-    if state_number > 0:
-        input_data = message.text if message.text != '-' else ''
-        if input_data == button_cancel.text:
-            await state.set_state(AdminMenuStates.all()[0])
-            await state.set_data({})
-            await process_start_command_admin(message)
-            return
-        state_data[state_number] = input_data
-        await state.set_data(state_data)
-
-    if state_number < 3:
-        state_number += 1
-        await state.set_state(CreateEventStates.all()[state_number])
-        await message.reply(MESSAGES['create_event_prompt_data_' + str(state_number)],
-                            reply=False,
-                            reply_markup=keyboard_cancel)
-    else:
-        with session_scope() as session:
-            Event(title=state_data[1],
-                  description=state_data[2],
-                  access_info=state_data[3]) \
-                .insert_me(session)
-        await message.reply(MESSAGES['create_event_done'],
-                            reply=False)
-        await state.set_state(AdminMenuStates.all()[0])
-        await state.set_data({})
-        await process_start_command_admin(message)
+    await state.set_state(MenuStates.all()[0])
+    await show_events_task_admin(message)
