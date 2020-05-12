@@ -66,7 +66,6 @@ async def process_view_enrolls_admin(message: types.Message):
         m_h = build_header(event.title,
                            event.id,
                            count,
-                           count,
                            all_names)
         # send header
         await message.reply(m_h,

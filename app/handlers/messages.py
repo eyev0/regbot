@@ -72,13 +72,11 @@ MESSAGES = {
 def build_header(event_title: str,
                  event_id: int,
                  all_users_count: int,
-                 new_users_count: int,
                  all_names: list):
     # build Header message
     m_h = f'Ивент: {event_title}\n' \
           f'ID ивента: {event_id}\n' \
           f'Регистраций: {str(all_users_count)} \n' \
-          f'Новых: {str(new_users_count)}\n\n' \
           f'Список:\n' + \
           '_______________________\n' + \
           '\n'.join(all_names) + '\n'
@@ -90,7 +88,7 @@ def build_caption(uid,
                   name_surname,
                   complete,
                   edit_datetime):
-    m_b = f'id: {uid}, ' + (f'@{username}\n' if username is not None else '\n') + \
+    m_b = f'id: {uid}' + (f', @{username}\n' if username is not None else '\n') + \
           f'ФИО: {name_surname}\n' + \
           'Зареган: ' + ('да' if complete else 'нет') + '\n' + \
           f'Когда: {edit_datetime}'

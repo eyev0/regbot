@@ -38,7 +38,6 @@ async def process_callback_button_refresh_header(callback_query: types.CallbackQ
         m_h = build_header(event.title,
                            event.id,
                            count,
-                           count,
                            all_names)
 
         # edit header
