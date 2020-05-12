@@ -1,14 +1,14 @@
 from aiogram.utils.helper import Helper, HelperMode, ListItem
 
-from app import Config
+from app import config
 
 
 def admin_lambda():
-    return lambda m: m.from_user.id in Config.admin_ids
+    return lambda m: m.from_user.id in config.admin_ids
 
 
 def not_admin_lambda():
-    return lambda m: m.from_user.id not in Config.admin_ids
+    return lambda m: m.from_user.id not in config.admin_ids
 
 
 class UserStates(Helper):

@@ -10,4 +10,4 @@ RUN pip install --no-cache-dir -e .
 
 RUN mkdir /vol
 
-CMD [ "python", "./app/bot.py" ]
+CMD [ "python", "./app/bot.py", "--container" ]

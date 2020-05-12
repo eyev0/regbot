@@ -2,7 +2,6 @@ from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     ReplyKeyboardRemove
 
-# keyboard_admin_menu = ReplyKeyboardMarkup()
 
 button_create_new = KeyboardButton('Создать новое')
 
@@ -25,11 +24,12 @@ button_back = InlineKeyboardButton('<', callback_data='back')
 button_check = InlineKeyboardButton('✔️', callback_data='check')
 button_forward = InlineKeyboardButton('>', callback_data='forward')
 button_rewind_forward = InlineKeyboardButton('>>', callback_data='rewind_forward')
+# button_delete = InlineKeyboardButton('Удалить запись', callback_data='delete')
 
 keyboard_scroll = InlineKeyboardMarkup().row(
-    button_back, button_forward
+    button_rewind_back, button_back, button_check, button_forward, button_rewind_forward
 ).row(
-    button_rewind_back, button_check, button_rewind_forward
+    # button_delete
 )
 
 button_refresh = InlineKeyboardButton('Обновить', callback_data='refresh')

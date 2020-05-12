@@ -1,36 +1,37 @@
 import json
-import os
 
 
 class Config(object):
-    # test
-    # TOKEN = '1285790755:AAFTOTGN6e_a-RAAm7w7CqDLokssL94v98c'
-    # prod
-    TOKEN = '1298712654:AAGhzGDtJMIaO_2RgWjOV7ZV4yj0-fWbPfs'
 
-    # Proxy
-    # PROXY_PROTOCOL = 'http'
-    # PROXY_PROTOCOL = 'socks5'
-    # PROXY_IP = '217.61.109.129'
-    # PROXY_PORT = '8080'
-    # PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
+    def __init__(self, container, test_env):
+        self.container = container
+        self.test_env = test_env
 
-    # admins
-    admin_ids = [119707338, 296145754]
-    # admin_ids = [296145754, ]  # Lera
+        if self.container:
+            self.vol_path = '/vol'
+        else:
+            self.vol_path = '/home/egor/regbot'
+            if self.test_env:
+                self.vol_path = self.vol_path + '/test'
 
-    RANDOM_KITTEN_JPG = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Red_Kitten_01.jpg/' \
-                        '320px-Red_Kitten_01.jpg'
+        self.config_path = self.vol_path + '/config.json'
+        self.proxy_path = self.vol_path + '/proxy.json'
+        self.db_path = self.vol_path + '/users.db'
+        self.log_path = self.vol_path + '/regbot.log'
+        self.FSMstorage_path = self.vol_path + '/FSMstorage.json'
 
-    # file config
-    vol_dir = '/vol' if os.path.exists('/vol') else '/home/egor/regbot'
-    proxy_path = vol_dir + '/proxy.json'
-    db_path = vol_dir + '/users.db'
-    log_path = vol_dir + '/regbot.log'
-    FSMstorage_path = vol_dir + '/FSMstorage.json'
+        with open(self.config_path, 'rb') as f:
+            self.conf = json.load(f)
+            self.TOKEN = self.conf['TOKEN']
+            self.admin_ids = self.conf['admin_ids']
 
-    proxy_conf = json.load(open(proxy_path, 'rb'))
-    PROXY_PROTOCOL = proxy_conf['protocol']
-    PROXY_IP = proxy_conf['ip']
-    PROXY_PORT = proxy_conf['port']
-    PROXY_URL = PROXY_PROTOCOL + '://' + PROXY_IP + ':' + PROXY_PORT
+        with open(self.proxy_path, 'rb') as f:
+            self.proxy_conf = json.load(f)
+            self.PROXY_PROTOCOL = self.proxy_conf['protocol']
+            self.PROXY_IP = self.proxy_conf['ip']
+            self.PROXY_PORT = self.proxy_conf['port']
+            self.PROXY_URL = self.PROXY_PROTOCOL + '://' + self.PROXY_IP + ':' + self.PROXY_PORT
+
+    def __repr__(self):
+        return f'Config(container={self.container}, test_env={self.test_env}, TOKEN={self.TOKEN}, ' \
+               f'PROXY_URL={self.PROXY_URL}, vol_dir={self.vol_path}, admin_ids={self.admin_ids})'

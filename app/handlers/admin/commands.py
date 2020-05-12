@@ -1,6 +1,6 @@
 from aiogram import types
 
-from app import dp, Config
+from app import dp, config
 from app.db import session_scope
 from app.db.models import Enrollment, User
 from app.handlers import AdminMenuStates
@@ -64,12 +64,12 @@ async def process_admin_command(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
     if magic_word == 'pls':
-        if uid not in Config.admin_ids:
-            Config.admin_ids.append(uid)
+        if uid not in config.admin_ids:
+            config.admin_ids.append(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_enable'], reply=False)
     elif magic_word == 'no':
-        if uid in Config.admin_ids:
-            Config.admin_ids.remove(uid)
+        if uid in config.admin_ids:
+            config.admin_ids.remove(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_disable'], reply=False)

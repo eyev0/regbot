@@ -3,7 +3,12 @@ import logging
 from aiogram.utils import executor
 from aiogram.utils.exceptions import TerminatedByOtherGetUpdates
 
-from app import dp as dispatcher
+from app import dp as dispatcher, config
+
+
+async def on_startup(dp):
+    logging.warning('Powering up.')
+    logging.warning('Config is:' + str(config))
 
 
 async def on_shutdown(dp):
@@ -18,6 +23,7 @@ async def on_shutdown(dp):
 if __name__ == '__main__':
     try:
         executor.start_polling(dispatcher,
+                               on_startup=on_startup,
                                on_shutdown=on_shutdown,
                                timeout=20)
     except TerminatedByOtherGetUpdates as e:

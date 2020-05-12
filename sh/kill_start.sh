@@ -12,5 +12,4 @@ sleep 2
 echo
 echo "docker start $1"
 echo
-
 docker start "$1"

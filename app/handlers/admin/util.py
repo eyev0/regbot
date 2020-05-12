@@ -1,11 +1,13 @@
 from aiogram import types
 from aiogram.types import InputMediaPhoto, InputMediaDocument, InputFile
 
-from app import Config
 from app.db import session_scope
 from app.db.models import Event
 from app.handlers.keyboards import events_reply_keyboard
 from app.handlers.messages import MESSAGES
+
+RANDOM_KITTEN_JPG = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Red_Kitten_01.jpg/' \
+                    '320px-Red_Kitten_01.jpg'
 
 
 def media_with_caption(enroll_complete, file_type, file_id, caption):
@@ -19,7 +21,7 @@ def media_with_caption(enroll_complete, file_type, file_id, caption):
     return obj
 
 
-kitty = InputFile.from_url(Config.RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
+kitty = InputFile.from_url(RANDOM_KITTEN_JPG, 'Ой! Ещё нет информации о платеже!.jpg')
 
 
 async def show_menu_task_admin(message: types.Message):

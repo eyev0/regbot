@@ -33,14 +33,14 @@ async def process_name(message: types.Message):
                     content_types=ContentType.TEXT)
 async def process_event_click(message: types.Message):
     uid = message.from_user.id
+    state = dp.current_state(user=uid)
     with session_scope() as session:
         event_q = session.query(Event) \
             .filter(Event.title == message.text)
         if event_q.count() == 0:
-            # await message.reply('Нет такого..',
-            #                     reply=False)
             return
         event: Event = event_q.all()[0]
+        await state.set_data({'event_id': event.id})
 
         user_q = session.query(User) \
             .filter(User.uid == uid)
@@ -62,7 +62,6 @@ async def process_event_click(message: types.Message):
             enrollment = enrolled_q.all()[0]
 
         # build message
-        state = dp.current_state(user=uid)
         if enrollment.complete:
             m_text = MESSAGES['registration_exists']
             remove_keyboard = None
@@ -80,6 +79,8 @@ async def process_event_click(message: types.Message):
                     content_types=[ContentType.PHOTO, ContentType.DOCUMENT])
 async def process_invoice(message: types.Message):
     uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    state_data = await state.get_data() or {}
 
     if message.document is not None:
         invoice_type = 'document'
@@ -93,7 +94,7 @@ async def process_invoice(message: types.Message):
             .join(User) \
             .join(Event) \
             .filter(User.uid == uid) \
-            .filter(Enrollment.complete == False)
+            .filter(Event.id == state_data['event_id'])
 
         enroll, event = enroll_q.all()[0]
         enroll.file_type = invoice_type
@@ -104,6 +105,7 @@ async def process_invoice(message: types.Message):
 
         state = dp.current_state(user=message.from_user.id)
         await state.set_state(None)
+        await state.set_data({})
 
         await message.reply(MESSAGES['registration_complete'] + text(event.access_info),
                             parse_mode=ParseMode.MARKDOWN,

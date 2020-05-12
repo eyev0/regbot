@@ -5,10 +5,10 @@ import sqlalchemy
 import sqlalchemy.orm
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from app.config import Config
+from app import config
 from app.db.models import Base
 
-engine = sqlalchemy.create_engine(f'sqlite:///{Config.db_path}')
+engine = sqlalchemy.create_engine(f'sqlite:///{config.db_path}')
 
 Base.metadata.create_all(engine)
 
