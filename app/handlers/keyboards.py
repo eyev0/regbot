@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     ReplyKeyboardRemove
@@ -44,39 +46,49 @@ button_back_to_events = KeyboardButton('Вернуться к списку ив�
 button_cancel = KeyboardButton('Отмена')
 keyboard_cancel = ReplyKeyboardMarkup().row(button_cancel)
 
-# Основное меню
-button_view_enrolls = KeyboardButton('Список регистраций')
-button_info = KeyboardButton('Инфа мероприятия')
-button_change_status = KeyboardButton('Изменить статус ивента')
-button_publish = KeyboardButton('Отправить уведомление юзерам')
-keyboard_admin_menu = ReplyKeyboardMarkup()
-keyboard_admin_menu.row(button_view_enrolls)
-keyboard_admin_menu.row(button_info)
-keyboard_admin_menu.row(button_change_status)
-keyboard_admin_menu.row(button_publish)
-keyboard_admin_menu.row(button_back_to_events)
-
 # Изменить статус ивента
-button_status_0 = KeyboardButton('0 - не опубликованно')
-button_status_1 = KeyboardButton('1 - регистрация открыта')
-button_status_9 = KeyboardButton('9 - регистрация закрыта')
-button_status_10 = KeyboardButton('10 - архивировано')
-button_back_to_event_menu = KeyboardButton('Вернуться в меню ивента')
-keyboard_change_status = ReplyKeyboardMarkup()
-keyboard_change_status.row(button_status_0)
-keyboard_change_status.row(button_status_1)
-keyboard_change_status.row(button_status_9)
-keyboard_change_status.row(button_status_10)
-keyboard_change_status.row(button_back_to_event_menu)
+button_status_decrease = InlineKeyboardButton('-', callback_data='<')
+button_status_increase = InlineKeyboardButton('+', callback_data='>')
+button_current_status = InlineKeyboardButton('', callback_data='status')
+status_buttons_list = [button_status_decrease, button_current_status, button_status_increase]
+
+
+def status_buttons(current_status: int):
+    button_current_status.text = 'Статус: ' + str(current_status)
+    return status_buttons_list
+
+
+# Основное меню
+button_view_enrolls = InlineKeyboardButton('Список регистраций', callback_data='view_enrolls')
+button_publish = InlineKeyboardButton('Написать подписчикам', callback_data='publish')
+
+
+def event_menu_keyboard(event_status: int):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.row(button_view_enrolls)
+    keyboard.row(button_publish)
+    keyboard.row(*status_buttons(event_status))
+    return keyboard
+
+
+def append_keyboards(*keyboards) -> InlineKeyboardMarkup:
+    result = InlineKeyboardMarkup()
+    for keyboard in keyboards:
+        for row in keyboard.inline_keyboard:
+            result.row(*row)
+    return result
+
 
 # Просмотр регистраций
 button_refresh = InlineKeyboardButton('Обновить', callback_data='refresh')
 keyboard_refresh = InlineKeyboardMarkup().row(button_refresh)
 
-button_rewind_back = InlineKeyboardButton('<<', callback_data='rewind_back')
-button_back = InlineKeyboardButton('<', callback_data='back')
-button_forward = InlineKeyboardButton('>', callback_data='forward')
-button_rewind_forward = InlineKeyboardButton('>>', callback_data='rewind_forward')
+button_rewind_back = InlineKeyboardButton('<<', callback_data='<<')
+button_back = InlineKeyboardButton('<', callback_data='<')
+button_forward = InlineKeyboardButton('>', callback_data='>')
+button_rewind_forward = InlineKeyboardButton('>>', callback_data='>>')
+scroll_buttons_list = [button_rewind_back, button_back, button_forward, button_rewind_forward]
+
 keyboard_scroll = InlineKeyboardMarkup().row(
     button_rewind_back, button_back,
     button_forward, button_rewind_forward

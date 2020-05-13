@@ -32,3 +32,6 @@ def session_scope():
 
 
 from .util import *
+
+enrolls_row_iterator = WrappingListIterator()
+status_row_iterator = WrappingListIterator()

@@ -1,3 +1,5 @@
+from app.db.models import Event
+
 greet_new_user = '*Привет!*\n' \
                  'Я - *Лера Трифонова*, а как вас зовут? Напишите, пожалуйста, *фамилию и имя* :)'
 pleased_to_meet_you = '*Очень приятно* :)'
@@ -28,7 +30,7 @@ create_event_prompt_data_3 = 'Отлично! Теперь напиши сооб
 create_event_done = 'Готово!'
 create_event_oops = 'Ой.'
 
-change_status_prompt = 'Выбери статус'
+change_status_prompt = 'Текущий статус: {}\nВыбери новый'
 
 help_None = 'Привет! Для начала, напиши мне /start :)'
 help_state_1 = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
@@ -76,25 +78,33 @@ MESSAGES = {
 }
 
 
-def build_header(event_title: str,
-                 event_id: int,
-                 all_users_count: int,
-                 all_names: list):
+def event_str(event_title: str,
+              status: str,
+              users_enrolled_count: int) -> str:
     # build Header message
-    m_h = f'Ивент: {event_title}\n' \
-          f'ID ивента: {event_id}\n' \
-          f'Регистраций: {str(all_users_count)} \n' \
-          f'Список:\n' + \
-          '_______________________\n' + \
-          '\n'.join(all_names) + '\n'
-    return m_h
+    msg = f'{event_title}\n' \
+          f'Статус: {status}\n' \
+          f'Регистраций: {str(users_enrolled_count)}'
+    return msg
 
 
-def build_caption(uid,
-                  username,
-                  name_surname,
-                  complete,
-                  edit_datetime):
+def users_enrolled_list_str(names_list: list) -> str:
+    msg = '\n'.join(names_list) + '\n'
+    return msg
+
+
+def event_info_str(description: str,
+                   success_message: str) -> str:
+    msg = f'\n\nОписание: \n{description}\n\n' + \
+          f'Сообщение об успешной регистрации: \n{success_message}\n\n'
+    return msg
+
+
+def enrollment_str(uid,
+                   username,
+                   name_surname,
+                   complete,
+                   edit_datetime) -> str:
     m_b = f'id: {uid}' + (f', @{username}\n' if username is not None else '\n') + \
           f'ФИО: {name_surname}\n' + \
           'Зареган: ' + ('да' if complete else 'нет') + '\n' + \

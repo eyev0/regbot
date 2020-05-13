@@ -56,6 +56,13 @@ class Event(Base):
     status = Column(Integer)
     edit_datetime = Column(DateTime, default=clock.now())
 
+    status_map = {
+        0: 'не опубликовано',
+        1: 'открыта регистрация',
+        9: 'регистрация закрыта',
+        10: 'архивировано',
+    }
+
     def __init__(self,
                  title='',
                  description='',
