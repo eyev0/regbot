@@ -35,3 +35,17 @@ class CreateEventStates(Helper):
     CREATE_EVENT_STATE_1 = ListItem()
     CREATE_EVENT_STATE_2 = ListItem()
     CREATE_EVENT_STATE_3 = ListItem()
+
+
+class ChangeStatusStates(Helper):
+    mode = HelperMode.snake_case
+
+    CHANGE_STATUS_STATE_0 = ListItem()
+    CHANGE_STATUS_STATE_1 = ListItem()
+
+
+class PublishStates(Helper):
+    mode = HelperMode.snake_case
+
+    PUBLISH_STATE_0 = ListItem()
+    PUBLISH_STATE_1 = ListItem()

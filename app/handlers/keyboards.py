@@ -39,7 +39,7 @@ def events_reply_keyboard(events_list, admin_mode=False, archived=False):
 button_create_new = KeyboardButton('Создать новое')
 button_view_archive = KeyboardButton('Архив')
 
-button_back_to_events = KeyboardButton('Назад')
+button_back_to_events = KeyboardButton('Вернуться к списку ивентов')
 
 button_cancel = KeyboardButton('Отмена')
 keyboard_cancel = ReplyKeyboardMarkup().row(button_cancel)
@@ -61,7 +61,7 @@ button_status_0 = KeyboardButton('0 - не опубликованно')
 button_status_1 = KeyboardButton('1 - регистрация открыта')
 button_status_9 = KeyboardButton('9 - регистрация закрыта')
 button_status_10 = KeyboardButton('10 - архивировано')
-button_back_to_event_menu = KeyboardButton('Назад')
+button_back_to_event_menu = KeyboardButton('Вернуться в меню ивента')
 keyboard_change_status = ReplyKeyboardMarkup()
 keyboard_change_status.row(button_status_0)
 keyboard_change_status.row(button_status_1)

@@ -24,9 +24,11 @@ admin_record_deleted = 'Запись удалена!'
 create_event_prompt_data_1 = 'Название мероприятия'
 create_event_prompt_data_2 = 'Короткое описание мероприятия (или минус чтобы пропустить)'
 create_event_prompt_data_3 = 'Отлично! Теперь напиши сообщение пользователю ' \
-                                  'об успешном завершении регистрации(не забудь вставить ссылку на канал)'
+                             'об успешном завершении регистрации(не забудь вставить ссылку на канал)'
 create_event_done = 'Готово!'
 create_event_oops = 'Ой.'
+
+change_status_prompt = 'Выбери статус'
 
 help_None = 'Привет! Для начала, напиши мне /start :)'
 help_state_1 = 'Напишите мне, пожалуйста, свою фамилию и имя :)'
@@ -55,12 +57,15 @@ MESSAGES = {
     'admin_restart': admin_restart,
     'admin_record_deleted': admin_record_deleted,
 
-    # create event steps
+    # create event messages
     'create_event_prompt_data_1': create_event_prompt_data_1,
     'create_event_prompt_data_2': create_event_prompt_data_2,
     'create_event_prompt_data_3': create_event_prompt_data_3,
     'create_event_done': create_event_done,
     'create_event_oops': create_event_oops,
+
+    # change status messages
+    'change_status_prompt': change_status_prompt,
 
     # help messages by state
     'help_None': help_None,
