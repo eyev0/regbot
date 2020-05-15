@@ -31,6 +31,7 @@ class MenuStates(Helper):
 class CreateEventStates(Helper):
     mode = HelperMode.snake_case
 
+    CREATE_EVENT_STATE_0 = ListItem()
     CREATE_EVENT_STATE_1 = ListItem()
     CREATE_EVENT_STATE_2 = ListItem()
     CREATE_EVENT_STATE_3 = ListItem()

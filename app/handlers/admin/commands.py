@@ -11,7 +11,7 @@ from app.handlers.util import admin_lambda
 
 
 @dp.message_handler(lambda m: m.text == button_back_to_events.text,
-                    state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
+                    state=MenuStates.MENU_STATE_0)
 @dp.message_handler(admin_lambda(),
                     state='*',
                     commands=['start'])

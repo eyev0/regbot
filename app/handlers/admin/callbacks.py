@@ -3,7 +3,6 @@ from aiogram import types
 from app import dp, bot, navigation_context
 from app.db import session_scope, fetch_list
 from app.db.models import Event, User, Enrollment
-from app.handlers import MenuStates
 from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message
 from app.handlers.keyboards import button_refresh, scroll_buttons_list, \
     button_view_enrolls, status_buttons_list, button_publish, button_current_status
@@ -12,13 +11,13 @@ from app.handlers.messages import MESSAGES
 
 # view enrolls click
 @dp.callback_query_handler(lambda c: c.data == button_view_enrolls.callback_data,
-                           state=MenuStates.MENU_STATE_1_EVENT)
+                           state='*')
 # refresh click
 @dp.callback_query_handler(lambda c: c.data == button_refresh.callback_data,
-                           state=MenuStates.MENU_STATE_1_EVENT)
+                           state='*')
 # scroll click
 @dp.callback_query_handler(lambda c: c.data in [x.callback_data for x in scroll_buttons_list],
-                           state=MenuStates.MENU_STATE_1_EVENT)
+                           state='*')
 async def view_enrolls(callback_query: types.CallbackQuery):
     refresh_header = scroll = view = edit = False
     if callback_query.data == button_refresh.callback_data:
@@ -44,7 +43,7 @@ async def view_enrolls(callback_query: types.CallbackQuery):
             .order_by(Enrollment.edit_datetime.desc())
 
         user_enroll_list, enrolled_count = users_enrolls_q.all(), users_enrolls_q.count()
-        names_list = [x[0].name_surname for x in user_enroll_list]
+        names_list = [x[0].full_name for x in user_enroll_list]
 
         if (view and enrolled_count > 0) or refresh_header:
             result = await send_user_list_message(message, event, names_list, edit=edit)
@@ -62,7 +61,7 @@ async def view_enrolls(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: c.data in [x.callback_data for x in status_buttons_list],
-                           state=MenuStates.MENU_STATE_1_EVENT)
+                           state='*')
 async def change_status(callback_query: types.CallbackQuery):
     scroll = callback_query.data != button_current_status.callback_data
     uid = callback_query.from_user.id
@@ -95,12 +94,15 @@ async def change_status(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: c.data == button_publish.callback_data,
-                           state=MenuStates.MENU_STATE_1_EVENT)
+                           state='*')
 async def publish(callback_query: types.CallbackQuery):
     message = callback_query.message
     uid = message.from_user.id
     state = dp.current_state(user=uid)
     with session_scope() as session:
+        users_q = session.query(User) \
+            .filter(User.active == True) \
+            .filter(User.receive_notifications == True)
         pass
 
 

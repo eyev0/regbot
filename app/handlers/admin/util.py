@@ -55,7 +55,7 @@ async def send_enrollment_message(message: types.Message,
                                   edit=False) -> types.Message:
     m_b = enrollment_str(user.uid,
                          user.username,
-                         user.name_surname,
+                         user.full_name,
                          enrollment.complete,
                          enrollment.edit_datetime)
     if edit:

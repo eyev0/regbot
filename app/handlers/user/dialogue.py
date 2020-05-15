@@ -21,7 +21,7 @@ async def process_name(message: types.Message):
             .filter(User.uid == uid)
         user: User = user_q.all()[0]
 
-        user.name_surname = message.text
+        user.full_name = message.text
 
     await message.reply(MESSAGES['pleased_to_meet_you'],
                         parse_mode=ParseMode.MARKDOWN,

@@ -28,7 +28,7 @@ async def process_create_event_data(message: types.Message):
         state_data[state_number] = input_data
         await state.set_data(state_data)
 
-    if state_number < len(CreateEventStates.all()):
+    if state_number < len(CreateEventStates.all()) - 1:
         state_number += 1
         await state.set_state(CreateEventStates.all()[state_number])
         await message.reply(MESSAGES['create_event_prompt_data_' + str(state_number)],
@@ -48,15 +48,14 @@ async def process_create_event_data(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_view_archive.text,
-                    state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
+                    state=MenuStates.MENU_STATE_0)
 async def process_view_archive_admin(message: types.Message):
     await show_events_task_admin(message, archived=True)
 
 
-@dp.message_handler(state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
+@dp.message_handler(state=MenuStates.MENU_STATE_0)
 async def process_event_click_admin(message: types.Message):
     uid = message.from_user.id
-    state = dp.current_state(user=uid)
     event_title = message.text
     with session_scope() as session:
         event_q = session.query(Event) \
@@ -76,4 +75,3 @@ async def process_event_click_admin(message: types.Message):
 
         result = await send_event_message(message, event, count)
         await navigation_context.save(user=uid, key=result.message_id, value=(event.id, 0,))
-        await state.set_state(MenuStates.all()[1])

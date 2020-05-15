@@ -29,22 +29,30 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     uid = Column(Integer)
     username = Column(String(255))
-    name_surname = Column(String(255))
+    full_name = Column(String(255))
+    active = Column(Boolean, default=True)
+    receive_notifications = Column(Boolean, default=True)
     edit_datetime = Column(DateTime, default=clock.now())
 
     def __init__(self,
                  uid,
                  username='',
-                 name_surname='',
+                 full_name='',
+                 active=True,
+                 receive_notifications=True,
                  edit_datetime=clock.now()):
         self.uid = uid
         self.username = username
-        self.name_surname = name_surname
+        self.full_name = full_name
+        self.active = active
+        self.receive_notifications = receive_notifications
         self.edit_datetime = edit_datetime
 
     def __repr__(self):
-        return "User(id={}, uid={}, username={}, name_surname={}, edit_datetime={})" \
-            .format(self.id, self.uid, self.username, self.name_surname, self.edit_datetime)
+        return "User(id={}, uid={}, username={}, " \
+               "full_name={}, active={}, receive_notifications={}, edit_datetime={})" \
+            .format(self.id, self.uid, self.username,
+                    self.full_name, self.active, self.receive_notifications, self.edit_datetime)
 
 
 class Event(Base):
