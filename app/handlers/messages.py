@@ -89,7 +89,9 @@ def event_str(event_title: str,
 
 
 def users_enrolled_list_str(names_list: list) -> str:
-    msg = '\n'.join(names_list) + '\n'
+    msg = '\n\nСписок:' \
+          '\n______________________\n' + \
+          '\n'.join(names_list) + '\n'
     return msg
 
 

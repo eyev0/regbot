@@ -3,7 +3,7 @@ import logging
 from aiogram.utils import executor
 from aiogram.utils.exceptions import TerminatedByOtherGetUpdates
 
-from app import dp as dispatcher, config
+from app import dp as dispatcher, config, navigation_context
 
 
 async def on_startup(dp):
@@ -17,6 +17,9 @@ async def on_shutdown(dp):
     # Close DB connection (if used)
     await dp.storage.close()
     await dp.storage.wait_closed()
+
+    await navigation_context.storage.close()
+    await navigation_context.storage.wait_closed()
 
     logging.warning('Bye!')
 

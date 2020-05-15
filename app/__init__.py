@@ -8,6 +8,7 @@ from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from app.config import Config
+from app.util import FSMContextFactory
 
 clock = datetime(2020, 1, 1, tzinfo=pytz.timezone('Europe/Moscow'))
 
@@ -26,5 +27,7 @@ logging.basicConfig(filename=config.log_path,
 bot = Bot(token=config.TOKEN, proxy=config.PROXY_URL)
 dp = Dispatcher(bot, storage=JSONStorage(config.FSMstorage_path))
 dp.middleware.setup(LoggingMiddleware())
+
+navigation_context = FSMContextFactory(JSONStorage(config.navigation_storage))
 
 import app.handlers

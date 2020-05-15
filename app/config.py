@@ -19,6 +19,7 @@ class Config(object):
         self.db_path = self.vol_path + '/users.db'
         self.log_path = self.vol_path + '/regbot.log'
         self.FSMstorage_path = self.vol_path + '/FSMstorage.json'
+        self.navigation_storage = self.vol_path + '/navigation_storage.json'
 
         with open(self.config_path, 'rb') as f:
             self.conf = json.load(f)

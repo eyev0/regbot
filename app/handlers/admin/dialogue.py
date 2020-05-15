@@ -1,13 +1,12 @@
 from aiogram import types
 
-from app import dp
+from app import dp, navigation_context
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers import MenuStates, CreateEventStates
 from app.handlers.admin import process_start_command_admin, show_events_task_admin, send_event_message
-from app.handlers.keyboards import button_create_new, button_cancel, keyboard_cancel, button_view_archive, \
-    event_menu_keyboard
-from app.handlers.messages import MESSAGES, event_str
+from app.handlers.keyboards import button_create_new, button_cancel, keyboard_cancel, button_view_archive
+from app.handlers.messages import MESSAGES
 
 
 @dp.message_handler(lambda m: m.text == button_create_new.text,
@@ -16,9 +15,10 @@ from app.handlers.messages import MESSAGES, event_str
 async def process_create_event_data(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    state_number = int(str(await state.get_state())[-1:])
+    state_str = str(await state.get_state())
+    state_number = int(state_str[-1:])
     state_data = await state.get_data() or {}
-    if state_number > 0:
+    if state_str in CreateEventStates.all():
         input_data = message.text if message.text != '-' else ''
         if input_data == button_cancel.text:
             await state.set_state(MenuStates.all()[0])
@@ -28,7 +28,7 @@ async def process_create_event_data(message: types.Message):
         state_data[state_number] = input_data
         await state.set_data(state_data)
 
-    if state_number < 3:
+    if state_number < len(CreateEventStates.all()):
         state_number += 1
         await state.set_state(CreateEventStates.all()[state_number])
         await message.reply(MESSAGES['create_event_prompt_data_' + str(state_number)],
@@ -48,12 +48,12 @@ async def process_create_event_data(message: types.Message):
 
 
 @dp.message_handler(lambda m: m.text == button_view_archive.text,
-                    state=MenuStates.MENU_STATE_0)
+                    state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
 async def process_view_archive_admin(message: types.Message):
     await show_events_task_admin(message, archived=True)
 
 
-@dp.message_handler(state=MenuStates.MENU_STATE_0)
+@dp.message_handler(state=MenuStates.MENU_STATE_0 | MenuStates.MENU_STATE_1_EVENT)
 async def process_event_click_admin(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
@@ -66,15 +66,14 @@ async def process_event_click_admin(message: types.Message):
                                 reply=False)
             return
         event: Event = event_q.all()[0]
-        state_data = {'event_id': event.id}
 
         users_enrolls_q = session.query(User, Enrollment) \
             .join(Enrollment) \
             .join(Event) \
-            .filter(Event.id == state_data['event_id']) \
+            .filter(Event.id == event.id) \
             .order_by(Enrollment.edit_datetime.desc())
         count = users_enrolls_q.count()
 
-        await send_event_message(message, event, count)
+        result = await send_event_message(message, event, count)
+        await navigation_context.save(user=uid, key=result.message_id, value=(event.id, 0,))
         await state.set_state(MenuStates.all()[1])
-        await state.set_data(state_data)

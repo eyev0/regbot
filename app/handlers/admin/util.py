@@ -49,7 +49,10 @@ async def show_events_task_admin(message: types.Message,
                             reply_markup=events_keyboard)
 
 
-async def send_enrollment_message(message: types.Message, user: User, enrollment: Enrollment, edit=False):
+async def send_enrollment_message(message: types.Message,
+                                  user: User,
+                                  enrollment: Enrollment,
+                                  edit=False) -> types.Message:
     m_b = enrollment_str(user.uid,
                          user.username,
                          user.name_surname,
@@ -68,46 +71,60 @@ async def send_enrollment_message(message: types.Message, user: User, enrollment
             # can't send media
             await message.edit_media(InputMediaDocument(kitty, caption=m_b),
                                      reply_markup=keyboard_scroll)
+        finally:
+            result = message
     else:
         if enrollment.complete:
             try:
                 if enrollment.file_type == 'photo':
-                    await bot.send_photo(message.chat.id,
-                                         photo=enrollment.file_id,
-                                         caption=m_b,
-                                         reply_markup=keyboard_scroll)
+                    result = await bot.send_photo(message.chat.id,
+                                                  photo=enrollment.file_id,
+                                                  caption=m_b,
+                                                  reply_markup=keyboard_scroll)
                 else:
-                    await bot.send_document(message.chat.id,
-                                            document=enrollment.file_id,
-                                            caption=m_b,
-                                            reply_markup=keyboard_scroll)
+                    result = await bot.send_document(message.chat.id,
+                                                     document=enrollment.file_id,
+                                                     caption=m_b,
+                                                     reply_markup=keyboard_scroll)
             except BadRequest:
                 # can't send media
-                await bot.send_document(message.chat.id,
-                                        document=kitty,
-                                        caption=m_b,
-                                        reply_markup=keyboard_scroll)
+                result = await bot.send_document(message.chat.id,
+                                                 document=kitty,
+                                                 caption=m_b,
+                                                 reply_markup=keyboard_scroll)
         else:
-            await bot.send_document(message.chat.id,
-                                    document=kitty,
-                                    caption=m_b,
-                                    reply_markup=keyboard_scroll)
+            result = await bot.send_document(message.chat.id,
+                                             document=kitty,
+                                             caption=m_b,
+                                             reply_markup=keyboard_scroll)
+    return result
 
 
-async def send_user_list_message(message: types.Message, names_list, edit=False):
-    m_h = users_enrolled_list_str(names_list)
+async def send_user_list_message(message: types.Message,
+                                 event: Event,
+                                 names_list,
+                                 edit=False) -> types.Message:
+    m_h = event_str(event.title,
+                    Event.status_map[event.status],
+                    len(names_list)) + users_enrolled_list_str(names_list)
     if edit:
         try:
             await message.edit_text(m_h, reply_markup=keyboard_refresh)
         except MessageNotModified:
             logging.info(f'Message {message.message_id} is not modified')
+        finally:
+            result = message
     else:
-        await message.reply(m_h,
-                            reply=False,
-                            reply_markup=keyboard_refresh)
+        result = await message.reply(m_h,
+                                     reply=False,
+                                     reply_markup=keyboard_refresh)
+    return result
 
 
-async def send_event_message(message: types.Message, event: Event, count: int, edit=False):
+async def send_event_message(message: types.Message,
+                             event: Event,
+                             count: int,
+                             edit=False) -> types.Message:
     m_h = event_str(event.title,
                     Event.status_map[event.status],
                     count)
@@ -117,7 +134,10 @@ async def send_event_message(message: types.Message, event: Event, count: int, e
                                     reply_markup=event_menu_keyboard(event.status))
         except MessageNotModified:
             logging.info(f'Message {message.message_id} is not modified')
+        finally:
+            result = message
     else:
-        await message.reply(m_h,
-                            reply=False,
-                            reply_markup=event_menu_keyboard(event.status))
+        result = await message.reply(m_h,
+                                     reply=False,
+                                     reply_markup=event_menu_keyboard(event.status))
+    return result

@@ -47,8 +47,8 @@ button_cancel = KeyboardButton('Отмена')
 keyboard_cancel = ReplyKeyboardMarkup().row(button_cancel)
 
 # Изменить статус ивента
-button_status_decrease = InlineKeyboardButton('-', callback_data='<')
-button_status_increase = InlineKeyboardButton('+', callback_data='>')
+button_status_decrease = InlineKeyboardButton('-', callback_data='-')
+button_status_increase = InlineKeyboardButton('+', callback_data='+')
 button_current_status = InlineKeyboardButton('', callback_data='status')
 status_buttons_list = [button_status_decrease, button_current_status, button_status_increase]
 
