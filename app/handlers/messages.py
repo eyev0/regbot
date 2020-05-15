@@ -6,20 +6,24 @@ invoice_prompt = 'А теперь пришлите файл или фото с �
 registration_complete = '*Спасибо! Вы успешно зарегистрировались :)* \n\n'
 
 registration_exists = '*Вы уже регистрировались на это мероприятие ранее :)*'
-no_current_events = 'В данный момент нет мероприятий, на которые вы не регистрировались. ' \
-                    'Но мы обязательно оповестим вас, когда будет следующий интересный набор! :)'
+no_current_events = 'Это всё, ура! Мы обязательно оповестим вас, когда будет следующий интересный набор! :)'
 help_message = 'Это - *бот-помощник* для регистрации на онлайн-классы *Леры* *Трифоновой*\n' \
                'Введи /start, чтобы посмотреть список доступных мероприятий.\n' \
                'Если у тебя есть вопрос про мероприятия или про этого бота - напиши мне *@danceleradance*'
+
+user_notification_settings = 'Уведомления: '
 
 admin_enable = 'Ладно... будешь за админа теперь!'
 admin_disable = 'Теперь ты как все, друг!'
 admin_events = 'Список активных мероприятий:'
 admin_archive = 'Архив мероприятий:'
-admin_event_submenu = 'Что будем делать?'
 admin_event_not_found = 'Нет такого..'
 admin_restart = "Привет, админ! Введи /start, чтобы начать."
 admin_record_deleted = 'Запись удалена!'
+
+admin_publish_message = 'Что расскажем нашим блюзятам?'
+admin_publish_user_list = 'Вы собираетесь отправить сообщение подписчикам'
+admin_publish_edit = 'Давай попробуем еще разок!'
 
 create_event_prompt_data_1 = 'Название мероприятия'
 create_event_prompt_data_2 = 'Короткое описание мероприятия (или минус чтобы пропустить)'
@@ -52,10 +56,13 @@ MESSAGES = {
     'admin_disable': admin_disable,
     'admin_events': admin_events,
     'admin_archive': admin_archive,
-    'admin_event_submenu': admin_event_submenu,
     'admin_event_not_found': admin_event_not_found,
     'admin_restart': admin_restart,
     'admin_record_deleted': admin_record_deleted,
+
+    'admin_publish_message': admin_publish_message,
+    'admin_publish_user_list': admin_publish_user_list,
+    'admin_publish_edit': admin_publish_edit,
 
     # create event messages
     'create_event_prompt_data_1': create_event_prompt_data_1,
@@ -86,7 +93,7 @@ def event_str(event_title: str,
     return msg
 
 
-def users_enrolled_list_str(names_list: list) -> str:
+def full_names_list_str(names_list: list) -> str:
     msg = '\n\nСписок:' \
           '\n______________________\n' + \
           '\n'.join(names_list) + '\n'

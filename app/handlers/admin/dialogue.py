@@ -1,12 +1,14 @@
 from aiogram import types
+from aiogram.types import ContentTypes
 
 from app import dp, navigation_context
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
-from app.handlers import MenuStates, CreateEventStates
+from app.handlers.states import MenuStates, CreateEventStates, PublishStates
 from app.handlers.admin import process_start_command_admin, show_events_task_admin, send_event_message
-from app.handlers.keyboards import button_create_new, button_cancel, keyboard_cancel, button_view_archive
-from app.handlers.messages import MESSAGES
+from app.handlers.keyboards import button_create_new, button_cancel, keyboard_cancel, button_view_archive, \
+    keyboard_publish
+from app.handlers.messages import MESSAGES, full_names_list_str
 
 
 @dp.message_handler(lambda m: m.text == button_create_new.text,
@@ -75,3 +77,24 @@ async def process_event_click_admin(message: types.Message):
 
         result = await send_event_message(message, event, count)
         await navigation_context.save(user=uid, key=result.message_id, value=(event.id, 0,))
+
+
+@dp.message_handler(state=PublishStates.PUBLISH_STATE_0,
+                    content_types=ContentTypes.TEXT)
+async def process_publish_message(message: types.Message):
+    uid = message.from_user.id
+    state = dp.current_state(user=uid)
+    await state.set_state(PublishStates.all()[1])
+
+    with session_scope() as session:
+        users_q = session.query(User) \
+            .filter(User.active == True) \
+            .filter(User.receive_notifications == True)
+
+        names_list = [x.full_name for x in users_q.all()]
+
+    await message.reply(MESSAGES['admin_publish_user_list'] + full_names_list_str(names_list),
+                        reply=False)
+    await message.reply(message.text,
+                        reply=False,
+                        reply_markup=keyboard_publish)

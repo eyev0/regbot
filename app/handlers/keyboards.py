@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     ReplyKeyboardRemove
@@ -60,7 +58,7 @@ def status_buttons(current_status: int):
 
 # Основное меню
 button_view_enrolls = InlineKeyboardButton('Список регистраций', callback_data='view_enrolls')
-button_publish = InlineKeyboardButton('Написать подписчикам', callback_data='publish')
+button_publish = InlineKeyboardButton('Сообщение подписчикам', callback_data='publish')
 
 
 def event_menu_keyboard(event_status: int):
@@ -89,7 +87,25 @@ button_forward = InlineKeyboardButton('>', callback_data='>')
 button_rewind_forward = InlineKeyboardButton('>>', callback_data='>>')
 scroll_buttons_list = [button_rewind_back, button_back, button_forward, button_rewind_forward]
 
-keyboard_scroll = InlineKeyboardMarkup().row(
-    button_rewind_back, button_back,
-    button_forward, button_rewind_forward
-)
+keyboard_scroll = InlineKeyboardMarkup().row(*scroll_buttons_list)
+
+# Сообщение подписчикам
+button_publish_confirm = InlineKeyboardButton('Отправить', callback_data='publish_confirm')
+button_publish_edit = InlineKeyboardButton('Редактировать', callback_data='publish_edit')
+publish_buttons_list = [button_publish_confirm, button_publish_edit]
+
+keyboard_publish = InlineKeyboardMarkup()
+keyboard_publish.row(button_publish_confirm)
+keyboard_publish.row(button_publish_edit)
+
+button_turn_notifications_off = InlineKeyboardButton('Откл. уведомления', callback_data='turn_notifications_off')
+button_turn_notifications_on = InlineKeyboardButton('Вкл. уведомления', callback_data='turn_notifications_on')
+notifications_buttons_list = [button_turn_notifications_off, button_turn_notifications_on]
+notifications_buttons_map = {
+    True: button_turn_notifications_off,
+    False: button_turn_notifications_on,
+}
+
+
+def get_notifications_keyboard(flag):
+    return InlineKeyboardMarkup().row(notifications_buttons_map[flag])

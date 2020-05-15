@@ -3,13 +3,17 @@ from aiogram import types
 from app import dp, bot, navigation_context
 from app.db import session_scope, fetch_list
 from app.db.models import Event, User, Enrollment
-from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message
+from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message, admin_lambda
 from app.handlers.keyboards import button_refresh, scroll_buttons_list, \
-    button_view_enrolls, status_buttons_list, button_publish, button_current_status
+    button_view_enrolls, status_buttons_list, button_publish, button_current_status, publish_buttons_list, \
+    button_publish_edit, get_notifications_keyboard
 from app.handlers.messages import MESSAGES
 
-
 # view enrolls click
+from app.handlers.states import PublishStates, MenuStates
+from app.handlers.user import show_event_list_task
+
+
 @dp.callback_query_handler(lambda c: c.data == button_view_enrolls.callback_data,
                            state='*')
 # refresh click
@@ -97,16 +101,42 @@ async def change_status(callback_query: types.CallbackQuery):
                            state='*')
 async def publish(callback_query: types.CallbackQuery):
     message = callback_query.message
-    uid = message.from_user.id
+    uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
+    await state.set_state(PublishStates.all()[0])
+    await message.reply(MESSAGES['admin_publish_message'],
+                        reply=False)
+    await bot.answer_callback_query(callback_query.id)
+
+
+@dp.callback_query_handler(lambda c: c.data in [x.callback_data for x in publish_buttons_list],
+                           state=PublishStates.PUBLISH_STATE_1)
+async def publish_edit_submit(callback_query: types.CallbackQuery):
+    message = callback_query.message
+    uid = callback_query.from_user.id
+    state = dp.current_state(user=uid)
+    if callback_query.data == button_publish_edit.callback_data:
+        await state.set_state(PublishStates.all()[0])
+        await message.reply(MESSAGES['admin_publish_edit'],
+                            reply=False)
+        await bot.answer_callback_query(callback_query.id)
+        return
     with session_scope() as session:
         users_q = session.query(User) \
             .filter(User.active == True) \
             .filter(User.receive_notifications == True)
-        pass
+
+        for user in users_q.all():
+            await bot.send_message(user.uid,
+                                   message.text,
+                                   reply_markup=get_notifications_keyboard(flag=user.receive_notifications))
+            await show_event_list_task(user.uid)
+    await state.set_state(MenuStates.all()[0])
+    await bot.answer_callback_query(callback_query.id)
 
 
-@dp.callback_query_handler(state='*')
+@dp.callback_query_handler(admin_lambda(),
+                           state='*')
 async def restart_prompt(callback_query: types.CallbackQuery):
     await callback_query.message.reply(MESSAGES['admin_restart'],
                                        reply=False)

@@ -7,7 +7,7 @@ from aiogram.utils.exceptions import BadRequest, MessageNotModified
 from app import bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
-from app.handlers import enrollment_str, keyboard_scroll, users_enrolled_list_str, keyboard_refresh, event_str
+from app.handlers import enrollment_str, keyboard_scroll, full_names_list_str, keyboard_refresh, event_str
 from app.handlers.keyboards import events_reply_keyboard, event_menu_keyboard
 from app.handlers.messages import MESSAGES
 
@@ -106,7 +106,7 @@ async def send_user_list_message(message: types.Message,
                                  edit=False) -> types.Message:
     m_h = event_str(event.title,
                     Event.status_map[event.status],
-                    len(names_list)) + users_enrolled_list_str(names_list)
+                    len(names_list)) + full_names_list_str(names_list)
     if edit:
         try:
             await message.edit_text(m_h, reply_markup=keyboard_refresh)

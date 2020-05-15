@@ -6,7 +6,7 @@ from aiogram.types import ParseMode, ReplyKeyboardRemove
 from app import dp
 from app.db import session_scope
 from app.db.models import User
-from app.handlers import UserStates
+from app.handlers.states import UserStates
 from app.handlers.messages import MESSAGES
 from app.handlers.user.util import show_event_list_task
 from app.handlers.util import not_admin_lambda
@@ -49,4 +49,4 @@ async def process_start_command(message: types.Message):
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply=False)
         else:
-            await show_event_list_task(message)
+            await show_event_list_task(message.from_user.id)

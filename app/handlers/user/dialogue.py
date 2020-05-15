@@ -9,7 +9,7 @@ from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers.user import show_event_list_task
 from app.handlers.messages import MESSAGES
-from app.handlers import UserStates
+from app.handlers.states import UserStates
 
 
 @dp.message_handler(state=UserStates.USER_STATE_1,
@@ -26,7 +26,7 @@ async def process_name(message: types.Message):
     await message.reply(MESSAGES['pleased_to_meet_you'],
                         parse_mode=ParseMode.MARKDOWN,
                         reply=False)
-    await show_event_list_task(message)
+    await show_event_list_task(message.from_user.id)
 
 
 @dp.message_handler(state=UserStates.USER_STATE_2,
@@ -111,7 +111,7 @@ async def process_invoice(message: types.Message):
                             parse_mode=ParseMode.MARKDOWN,
                             reply=False)
 
-        await show_event_list_task(message)
+        await show_event_list_task(message.from_user.id)
 
 
 @dp.message_handler(state=UserStates.all().append(None),
