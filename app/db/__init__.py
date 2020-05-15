@@ -8,7 +8,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from app import config
 from app.db.models import Base
 
-engine = sqlalchemy.create_engine(f'sqlite:///{config.db_path}')
+# postres_connect_str = 'postgres://docker:docker@localhost:32323/docker'
+# engine = sqlalchemy.create_engine(f'sqlite:///{config.db_path}')
+engine = sqlalchemy.create_engine(config.db_connect_string)
 
 Base.metadata.create_all(engine)
 

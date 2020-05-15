@@ -16,10 +16,23 @@ class Config(object):
 
         self.config_path = self.vol_path + '/config.json'
         self.proxy_path = self.vol_path + '/proxy.json'
-        self.db_path = self.vol_path + '/users.db'
         self.log_path = self.vol_path + '/regbot.log'
         self.FSMstorage_path = self.vol_path + '/FSMstorage.json'
         self.navigation_storage = self.vol_path + '/navigation_storage.json'
+
+        self.db_dialect = 'postgres'
+        self.db_user = 'docker'
+        self.db_password = 'docker'
+        self.db_name = 'docker'
+        if self.container:
+            self.db_host = 'postgres'
+            self.db_port = '5432'
+        else:
+            self.db_host = 'localhost'
+            self.db_port = '32323'
+
+        self.db_connect_string = self.db_dialect + '://' + self.db_user + ':' + self.db_password + '@' \
+                                 + self.db_host + ':' + self.db_port + '/' + self.db_name
 
         with open(self.config_path, 'rb') as f:
             self.conf = json.load(f)
