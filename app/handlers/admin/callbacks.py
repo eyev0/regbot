@@ -1,6 +1,6 @@
 from aiogram import types
 
-from app import dp, bot, navigation_context
+from app import dp, bot, admin_nav_context, user_notify_context
 from app.db import session_scope, fetch_list
 from app.db.models import Event, User, Enrollment
 from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message, admin_lambda
@@ -33,7 +33,7 @@ async def view_enrolls(callback_query: types.CallbackQuery):
 
     uid = callback_query.from_user.id
     message = callback_query.message
-    event_id, pos = await navigation_context.get(user=uid, key=message.message_id)
+    event_id, pos = await admin_nav_context.get(user=uid, key=message.message_id)
     with session_scope() as session:
         event_q = session.query(Event) \
             .filter(Event.id == event_id)
@@ -51,7 +51,7 @@ async def view_enrolls(callback_query: types.CallbackQuery):
 
         if (view and enrolled_count > 0) or refresh_header:
             result = await send_user_list_message(message, event, names_list, edit=edit)
-            await navigation_context.save(user=uid, key=result.message_id, value=(event.id, pos,))
+            await admin_nav_context.save(user=uid, key=result.message_id, value=(event.id, pos,))
 
         if (view and enrolled_count > 0) or scroll:
             (user, enrollment), pos = fetch_list(user_enroll_list,
@@ -59,7 +59,7 @@ async def view_enrolls(callback_query: types.CallbackQuery):
                                                  do_scroll=scroll,
                                                  where=callback_query.data)
             result = await send_enrollment_message(message, user, enrollment, edit=edit)
-            await navigation_context.save(user=uid, key=result.message_id, value=(event.id, pos,))
+            await admin_nav_context.save(user=uid, key=result.message_id, value=(event.id, pos,))
 
     await bot.answer_callback_query(callback_query.id)
 
@@ -70,7 +70,7 @@ async def change_status(callback_query: types.CallbackQuery):
     scroll = callback_query.data != button_current_status.callback_data
     uid = callback_query.from_user.id
     message = callback_query.message
-    event_id, _ = await navigation_context.get(user=uid, key=message.message_id)
+    event_id, _ = await admin_nav_context.get(user=uid, key=message.message_id)
     with session_scope() as session:
         event_q = session.query(Event) \
             .filter(Event.id == event_id)
@@ -103,6 +103,11 @@ async def publish(callback_query: types.CallbackQuery):
     message = callback_query.message
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
+
+    # store event_id of this message
+    event_id, _ = await admin_nav_context.get(user=uid, key=message.message_id)
+    await state.set_data({'event_id': event_id})
+
     await state.set_state(PublishStates.all()[0])
     await message.reply(MESSAGES['admin_publish_message'],
                         reply=False)
@@ -115,6 +120,7 @@ async def publish_edit_submit(callback_query: types.CallbackQuery):
     message = callback_query.message
     uid = callback_query.from_user.id
     state = dp.current_state(user=uid)
+    event_id = await admin_nav_context.get(user=uid, key='event_id_message_' + str(message.message_id))
     if callback_query.data == button_publish_edit.callback_data:
         await state.set_state(PublishStates.all()[0])
         await message.reply(MESSAGES['admin_publish_edit'],
@@ -127,10 +133,14 @@ async def publish_edit_submit(callback_query: types.CallbackQuery):
             .filter(User.receive_notifications == True)
 
         for user in users_q.all():
-            await bot.send_message(user.uid,
-                                   message.text,
-                                   reply_markup=get_notifications_keyboard(flag=user.receive_notifications))
-            await show_event_list_task(user.uid)
+            result = await bot.send_message(user.uid,
+                                            message.text,
+                                            reply_markup=get_notifications_keyboard(
+                                                flag=user.receive_notifications))
+            await user_notify_context.save(user=user.uid, key=result.message_id, value=event_id)
+            # await show_event_list_task(user.uid,
+            #                            edit_markup=True,
+            #                            message=result)
     await state.set_state(MenuStates.all()[0])
     await bot.answer_callback_query(callback_query.id)
 

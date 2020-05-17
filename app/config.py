@@ -19,6 +19,7 @@ class Config(object):
         self.log_path = self.vol_path + '/regbot.log'
         self.FSMstorage_path = self.vol_path + '/FSMstorage.json'
         self.navigation_storage = self.vol_path + '/navigation_storage.json'
+        self.notification_storage = self.vol_path + '/notification_storage.json'
 
         self.db_dialect = 'postgres'
         self.db_user = 'docker'

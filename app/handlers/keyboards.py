@@ -100,7 +100,7 @@ keyboard_publish.row(button_publish_edit)
 
 button_turn_notifications_off = InlineKeyboardButton('Откл. уведомления', callback_data='turn_notifications_off')
 button_turn_notifications_on = InlineKeyboardButton('Вкл. уведомления', callback_data='turn_notifications_on')
-notifications_buttons_list = [button_turn_notifications_off, button_turn_notifications_on]
+toggle_notifications_buttons_list = [button_turn_notifications_off, button_turn_notifications_on]
 notifications_buttons_map = {
     True: button_turn_notifications_off,
     False: button_turn_notifications_on,

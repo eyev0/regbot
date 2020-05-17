@@ -28,6 +28,7 @@ bot = Bot(token=config.TOKEN, proxy=config.PROXY_URL)
 dp = Dispatcher(bot, storage=JSONStorage(config.FSMstorage_path))
 dp.middleware.setup(LoggingMiddleware())
 
-navigation_context = FSMContextFactory(JSONStorage(config.navigation_storage))
+admin_nav_context = FSMContextFactory(JSONStorage(config.navigation_storage))
+user_notify_context = FSMContextFactory(JSONStorage(config.notification_storage))
 
 import app.handlers

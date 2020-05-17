@@ -21,7 +21,7 @@ admin_event_not_found = 'Нет такого..'
 admin_restart = "Привет, админ! Введи /start, чтобы начать."
 admin_record_deleted = 'Запись удалена!'
 
-admin_publish_message = 'Что расскажем нашим блюзятам?'
+admin_publish_message = 'Что расскажем нашим блюзятам?(или напиши отмена)'
 admin_publish_user_list = 'Вы собираетесь отправить сообщение подписчикам'
 admin_publish_edit = 'Давай попробуем еще разок!'
 

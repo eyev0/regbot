@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.types import ContentTypes
 
-from app import dp, navigation_context
+from app import dp, admin_nav_context
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers.states import MenuStates, CreateEventStates, PublishStates
@@ -76,7 +76,7 @@ async def process_event_click_admin(message: types.Message):
         count = users_enrolls_q.count()
 
         result = await send_event_message(message, event, count)
-        await navigation_context.save(user=uid, key=result.message_id, value=(event.id, 0,))
+        await admin_nav_context.save(user=uid, key=result.message_id, value=(event.id, 0,))
 
 
 @dp.message_handler(state=PublishStates.PUBLISH_STATE_0,
@@ -84,7 +84,12 @@ async def process_event_click_admin(message: types.Message):
 async def process_publish_message(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    await state.set_state(PublishStates.all()[1])
+    state_data = await state.get_data()
+    if message.text.lower() == 'отмена':
+        await state.set_state(MenuStates.all()[0])
+        return
+    else:
+        await state.set_state(PublishStates.all()[1])
 
     with session_scope() as session:
         users_q = session.query(User) \
@@ -95,6 +100,9 @@ async def process_publish_message(message: types.Message):
 
     await message.reply(MESSAGES['admin_publish_user_list'] + full_names_list_str(names_list),
                         reply=False)
-    await message.reply(message.text,
-                        reply=False,
-                        reply_markup=keyboard_publish)
+    result = await message.reply(message.text,
+                                 reply=False,
+                                 reply_markup=keyboard_publish)
+    await admin_nav_context.save(user=uid,
+                                 key='event_id_message_' + str(result.message_id),
+                                 value=state_data['event_id'])

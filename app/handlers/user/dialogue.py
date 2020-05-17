@@ -4,43 +4,61 @@ from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ParseMode, ContentType
 from aiogram.utils.markdown import text
 
-from app import dp, clock
+from app import dp, clock, user_notify_context, bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers.user import show_event_list_task
+from app.handlers.keyboards import button_enroll
 from app.handlers.messages import MESSAGES
 from app.handlers.states import UserStates
 
 
 @dp.message_handler(state=UserStates.USER_STATE_1,
                     content_types=ContentType.TEXT)
-async def process_name(message: types.Message):
+async def name(message: types.Message):
     uid = message.from_user.id
     with session_scope() as session:
-        user_q = session.query(User) \
-            .filter(User.uid == uid)
-        user: User = user_q.all()[0]
-
-        user.full_name = message.text
+        user = User(uid=uid,
+                    username=message.from_user.username,
+                    full_name=message.text) \
+            .insert_me(session)
+        logging.info(f'user created: {user}')
 
     await message.reply(MESSAGES['pleased_to_meet_you'],
                         parse_mode=ParseMode.MARKDOWN,
                         reply=False)
-    await show_event_list_task(message.from_user.id)
+    await show_event_list_task(uid)
 
 
+@dp.callback_query_handler(lambda c: c.data in [button_enroll.callback_data],
+                           state='*')
 @dp.message_handler(state=UserStates.USER_STATE_2,
                     content_types=ContentType.TEXT)
-async def process_event_click(message: types.Message):
-    uid = message.from_user.id
+async def enroll_event(obj: types.base.TelegramObject):
+    callback = False
+    callback_query = None
+    if isinstance(obj, types.CallbackQuery):
+        callback = True
+        callback_query = obj
+        message = obj.message
+        uid = callback_query.from_user.id
+    elif isinstance(obj, types.Message):
+        message = obj
+        uid = message.from_user.id
+    else:
+        return
     state = dp.current_state(user=uid)
     with session_scope() as session:
-        event_q = session.query(Event) \
-            .filter(Event.title == message.text)
-        if event_q.count() == 0:
-            return
-        event: Event = event_q.all()[0]
-        await state.set_data({'event_id': event.id})
+        if callback:
+            event_id = await user_notify_context.get(user=uid, key=message.message_id)
+        else:
+            event_q = session.query(Event) \
+                .filter(Event.title == message.text)
+            if event_q.count() == 0:
+                return
+            event: Event = event_q.all()[0]
+            event_id = event.id
+        await state.set_data({'event_id': event_id})
 
         user_q = session.query(User) \
             .filter(User.uid == uid)
@@ -49,12 +67,12 @@ async def process_event_click(message: types.Message):
         enrolled_q = session.query(Enrollment) \
             .join(User) \
             .filter(User.uid == uid) \
-            .filter(Enrollment.event_id == event.id)
+            .filter(Enrollment.event_id == event_id)
 
         if enrolled_q.count() == 0:
             # create enrollment
             enrollment = Enrollment(user_id=user.id,
-                                    event_id=event.id,
+                                    event_id=event_id,
                                     complete=False) \
                 .insert_me(session)
             logging.info(f'enrollment created: {enrollment}')
@@ -73,11 +91,13 @@ async def process_event_click(message: types.Message):
                             parse_mode=ParseMode.MARKDOWN,
                             reply=False,
                             reply_markup=remove_keyboard)
+        if callback:
+            await bot.answer_callback_query(callback_query.id)
 
 
 @dp.message_handler(state=UserStates.USER_STATE_3,
                     content_types=[ContentType.PHOTO, ContentType.DOCUMENT])
-async def process_invoice(message: types.Message):
+async def invoice(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
     state_data = await state.get_data() or {}

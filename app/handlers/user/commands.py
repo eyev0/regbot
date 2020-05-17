@@ -40,10 +40,6 @@ async def process_start_command(message: types.Message):
             .filter(User.uid == uid)
 
         if user_q.count() == 0:
-            user = User(uid=uid,
-                        username=message.from_user.username) \
-                .insert_me(session)
-            logging.info(f'user created: {user}')
             await state.set_state(UserStates.all()[1])  # greet and prompt for name and surname
             await message.reply(MESSAGES['greet_new_user'],
                                 parse_mode=ParseMode.MARKDOWN,
