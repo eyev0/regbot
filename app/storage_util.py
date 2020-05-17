@@ -18,12 +18,12 @@ class FSMContextFactory(object):
         return FSMContext(storage=self.storage, chat=chat, user=user)
 
     async def save(self, user, key, value):
-        obj = self.get_fsm_context(user)
+        obj = self.get_fsm_context(user, chat=user)
         map_ = await obj.get_data() or {}
         map_[str(key)] = value
         await obj.set_data(map_)
 
     async def get(self, user, key):
-        obj = self.get_fsm_context(user)
+        obj = self.get_fsm_context(user, chat=user)
         map_ = await obj.get_data() or {}
         return map_.get(str(key), None)

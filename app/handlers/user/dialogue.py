@@ -122,18 +122,17 @@ async def invoice(message: types.Message):
         enroll.complete = True
         enroll.edit_datetime = clock.now()
         logging.info(f'enrollment updated! got invoice: {enroll}')
+        access_info = event.access_info
 
-        state = dp.current_state(user=message.from_user.id)
-        await state.set_state(None)
-        await state.set_data({})
+    state = dp.current_state(user=uid)
+    await state.set_state(None)
+    await state.set_data({})
 
-        complete_message = await message.reply(MESSAGES['registration_complete'] + text(event.access_info),
-                                               parse_mode=ParseMode.MARKDOWN,
-                                               reply=False)
-
-        await show_event_list_task(message.from_user.id,
-                                   edit_markup=True,
-                                   message=complete_message)
+    events_keyboard = await show_event_list_task(uid, markup_only=True)
+    await message.reply(MESSAGES['registration_complete'] + text(access_info),
+                        parse_mode=ParseMode.MARKDOWN,
+                        reply=False,
+                        reply_markup=events_keyboard)
 
 
 @dp.message_handler(state=UserStates.all().append(None),

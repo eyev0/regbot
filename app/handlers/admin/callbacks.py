@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import types
 
 from app import dp, bot, admin_nav_context, user_notify_context
@@ -8,10 +10,8 @@ from app.handlers.keyboards import button_refresh, scroll_buttons_list, \
     button_view_enrolls, status_buttons_list, button_publish, button_current_status, publish_buttons_list, \
     button_publish_edit, get_notifications_keyboard
 from app.handlers.messages import MESSAGES
-
 # view enrolls click
 from app.handlers.states import PublishStates, MenuStates
-from app.handlers.user import show_event_list_task
 
 
 @dp.callback_query_handler(lambda c: c.data == button_view_enrolls.callback_data,
@@ -132,23 +132,33 @@ async def publish_edit_submit(callback_query: types.CallbackQuery):
             .filter(User.active == True) \
             .filter(User.receive_notifications == True)
 
+        result_map = {}
         for user in users_q.all():
-            result = await bot.send_message(user.uid,
-                                            message.text,
-                                            reply_markup=get_notifications_keyboard(
-                                                flag=user.receive_notifications))
-            await user_notify_context.save(user=user.uid, key=result.message_id, value=event_id)
-            # await show_event_list_task(user.uid,
-            #                            edit_markup=True,
-            #                            message=result)
+            try:
+                result = await bot.send_message(user.uid,
+                                                message.text,
+                                                reply_markup=get_notifications_keyboard(
+                                                    flag=user.receive_notifications))
+                await user_notify_context.save(user=user.uid, key=result.message_id, value=event_id)
+                result_map[user.full_name] = True
+            except Exception as e:
+                logging.error('Exception sending notification to user:' + str(user) + ', exception is:\n\n' + str(e))
+                result_map[user.full_name] = False
+
+        result_str = 'Уведомление отправлено:\n'
+        user_ls = [usr for usr in result_map.keys()]
+        result_str = result_str + '\n'.join([name + (' - да' if result_map[name] else ' - нет') for name in user_ls])
+        await message.reply(result_str,
+                            reply=False)
+
+    await message.edit_reply_markup(reply_markup=None)
     await state.set_state(MenuStates.all()[0])
     await bot.answer_callback_query(callback_query.id)
 
-
-@dp.callback_query_handler(admin_lambda(),
-                           state='*')
-async def restart_prompt(callback_query: types.CallbackQuery):
-    await callback_query.message.reply(MESSAGES['admin_restart'],
-                                       reply=False)
-    await bot.answer_callback_query(callback_query.id)
-    return
+# @dp.callback_query_handler(admin_lambda(),
+#                            state='*')
+# async def restart_prompt(callback_query: types.CallbackQuery):
+#     await callback_query.message.reply(MESSAGES['admin_restart'],
+#                                        reply=False)
+#     await bot.answer_callback_query(callback_query.id)
+#     return

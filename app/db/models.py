@@ -123,8 +123,6 @@ class Enrollment(Base):
 
     def __repr__(self):
         return "Enrollment(id={}, user_id={}, event_id={}, complete={}, " \
-               "admin_check={}, file_type={}, file_id={}, edit_datetime={}," \
-               "user_id={}, event_id={})" \
+               "admin_check={}, file_type={}, file_id={}, edit_datetime={})" \
             .format(self.id, self.user_id, self.event_id, self.complete,
-                    self.admin_check, self.file_type, self. file_id, self.edit_datetime,
-                    self.user_id, self. event_id)
+                    self.admin_check, self.file_type, self.file_id, self.edit_datetime)

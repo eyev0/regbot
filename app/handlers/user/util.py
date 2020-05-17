@@ -10,8 +10,7 @@ from app.handlers.states import UserStates
 
 
 async def show_event_list_task(uid,
-                               edit_markup=False,
-                               message: types.Message = None):
+                               markup_only=False):
     state = dp.current_state(user=uid)
     with session_scope() as session:
         events_q = session.query(Event) \
@@ -24,8 +23,8 @@ async def show_event_list_task(uid,
         if events_q.count() > 0:
             m_text = MESSAGES['show_event_menu']
             events_keyboard = events_reply_keyboard(events_q.all())
-            if edit_markup:
-                await message.edit_reply_markup(reply_markup=events_keyboard)
+            if markup_only:
+                return events_keyboard
             else:
                 await bot.send_message(uid,
                                        text=m_text,
@@ -35,3 +34,5 @@ async def show_event_list_task(uid,
             m_text = MESSAGES['no_current_events']
             await bot.send_message(uid,
                                    text=m_text)
+
+        return None

@@ -1,3 +1,5 @@
+from typing import Union
+
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     ReplyKeyboardRemove
@@ -10,12 +12,14 @@ async def send_remove_reply_keyboard(message: types.Message):
     await remove_keyboard_stub.delete()
 
 
-def events_reply_keyboard(events_list, admin_mode=False, archived=False):
+def events_reply_keyboard(events_list,
+                          admin_mode=False,
+                          archived=False) -> Union[ReplyKeyboardMarkup, None]:
     max_buttons_in_row = 1
-    keyboard = ReplyKeyboardMarkup()
+    keyboard = None
+    row_list = []
     if len(events_list) > 0:
         i = 0
-        row_list = []
         for event in events_list:
             button = KeyboardButton(event.title)
             if len(row_list) == i:
@@ -23,16 +27,18 @@ def events_reply_keyboard(events_list, admin_mode=False, archived=False):
             row_list[i].append(button)
             if len(row_list[i]) == max_buttons_in_row:
                 i += 1
-        for row in row_list:
-            keyboard.row(*row)
 
     if admin_mode:
         if archived:
-            keyboard.row(button_back_to_events)
+            row_list.append([button_back_to_events])
         else:
-            keyboard.row(button_create_new)
-            keyboard.row(button_view_archive)
+            row_list.append([button_create_new])
+            row_list.append([button_view_archive])
 
+    if len(row_list) > 0:
+        keyboard = ReplyKeyboardMarkup()
+        for row in row_list:
+            keyboard.row(*row)
     return keyboard
 
 
