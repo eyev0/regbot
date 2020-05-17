@@ -7,7 +7,7 @@ from app.handlers.states import MenuStates
 from app.handlers.admin import show_events_task_admin
 from app.handlers.keyboards import button_back_to_events
 from app.handlers.messages import MESSAGES
-from app.handlers.util import admin_lambda
+from app.handlers.lambdas import admin_lambda
 
 
 @dp.message_handler(lambda m: m.text == button_back_to_events.text,

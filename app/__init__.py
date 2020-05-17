@@ -8,7 +8,7 @@ from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from app.config import Config
-from app.util import FSMContextFactory
+from app.storage_util import FSMContextFactory
 
 clock = datetime(2020, 1, 1, tzinfo=pytz.timezone('Europe/Moscow'))
 

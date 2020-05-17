@@ -9,7 +9,7 @@ from app.db.models import User
 from app.handlers.states import UserStates
 from app.handlers.messages import MESSAGES
 from app.handlers.user.util import show_event_list_task
-from app.handlers.util import not_admin_lambda
+from app.handlers.lambdas import not_admin_lambda
 
 
 @dp.message_handler(not_admin_lambda(),

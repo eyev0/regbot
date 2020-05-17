@@ -107,11 +107,13 @@ async def process_invoice(message: types.Message):
         await state.set_state(None)
         await state.set_data({})
 
-        await message.reply(MESSAGES['registration_complete'] + text(event.access_info),
-                            parse_mode=ParseMode.MARKDOWN,
-                            reply=False)
+        complete_message = await message.reply(MESSAGES['registration_complete'] + text(event.access_info),
+                                               parse_mode=ParseMode.MARKDOWN,
+                                               reply=False)
 
-        await show_event_list_task(message.from_user.id)
+        await show_event_list_task(message.from_user.id,
+                                   edit_markup=True,
+                                   message=complete_message)
 
 
 @dp.message_handler(state=UserStates.all().append(None),

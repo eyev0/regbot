@@ -1,3 +1,4 @@
+from aiogram import types
 from sqlalchemy import and_, or_
 
 from app import dp, bot
@@ -8,7 +9,9 @@ from app.handlers.messages import MESSAGES
 from app.handlers.states import UserStates
 
 
-async def show_event_list_task(uid):
+async def show_event_list_task(uid,
+                               edit_markup=False,
+                               message: types.Message = None):
     state = dp.current_state(user=uid)
     with session_scope() as session:
         events_q = session.query(Event) \
@@ -21,11 +24,14 @@ async def show_event_list_task(uid):
         if events_q.count() > 0:
             m_text = MESSAGES['show_event_menu']
             events_keyboard = events_reply_keyboard(events_q.all())
-            await state.set_state(UserStates.all()[2])
+            if edit_markup:
+                await message.edit_reply_markup(reply_markup=events_keyboard)
+            else:
+                await bot.send_message(uid,
+                                       text=m_text,
+                                       reply_markup=events_keyboard)
+                await state.set_state(UserStates.all()[2])
         else:
             m_text = MESSAGES['no_current_events']
-            events_keyboard = None
-
-        await bot.send_message(uid,
-                               text=m_text,
-                               reply_markup=events_keyboard)
+            await bot.send_message(uid,
+                                   text=m_text)

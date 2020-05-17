@@ -105,7 +105,13 @@ notifications_buttons_map = {
     True: button_turn_notifications_off,
     False: button_turn_notifications_on,
 }
+button_enroll = InlineKeyboardButton('Зарегистрироваться', callback_data='enroll')
+button_show_all_events = InlineKeyboardButton('Весь список ивентов', callback_data='show_all_events')
 
 
 def get_notifications_keyboard(flag):
-    return InlineKeyboardMarkup().row(notifications_buttons_map[flag])
+    keyboard = InlineKeyboardMarkup()
+    keyboard.row(button_enroll)
+    keyboard.row(button_show_all_events)
+    keyboard.row(notifications_buttons_map[flag])
+    return keyboard
