@@ -1,5 +1,7 @@
 import json
 
+APP_NAME = 'regbot'
+
 
 class Config(object):
 
@@ -10,23 +12,23 @@ class Config(object):
         if self.container:
             self.vol_path = '/vol'
         else:
-            self.vol_path = '/home/egor/regbot'
+            self.vol_path = f'/home/egor/{APP_NAME}'
             if self.test_env:
                 self.vol_path = self.vol_path + '/test'
 
         self.config_path = self.vol_path + '/config.json'
         self.proxy_path = self.vol_path + '/proxy.json'
-        self.log_path = self.vol_path + '/regbot.log'
-        self.FSMstorage_path = self.vol_path + '/FSMstorage.json'
-        self.navigation_storage = self.vol_path + '/navigation_storage.json'
-        self.notification_storage = self.vol_path + '/notification_storage.json'
+        self.log_path = self.vol_path + f'/{APP_NAME}.log'
+        self.FSMstorage_path = self.vol_path + '/storage/FSMstorage.json'
+        self.navigation_storage = self.vol_path + '/storage/navigation_storage.json'
+        self.notification_storage = self.vol_path + '/storage/notification_storage.json'
 
         self.db_dialect = 'postgres'
         self.db_user = 'docker'
         self.db_password = 'docker'
         self.db_name = 'docker'
         if self.container:
-            self.db_host = 'postgres'
+            self.db_host = f'postgres-{APP_NAME}'
             self.db_port = '5432'
         else:
             self.db_host = 'localhost'

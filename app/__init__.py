@@ -7,12 +7,12 @@ from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.files import JSONStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from app.config import Config
+from app.config import Config, APP_NAME
 from app.storage_util import FSMContextFactory
 
 clock = datetime(2020, 1, 1, tzinfo=pytz.timezone('Europe/Moscow'))
 
-parser = argparse.ArgumentParser(description='Power up regbot. Use -t for testing')
+parser = argparse.ArgumentParser(description=f'Power up {APP_NAME}. Use -t for testing')
 parser.add_argument('-t', '--test', dest='test_env',
                     action='store_true', default=False)
 parser.add_argument('-c', '--container', dest='container',
@@ -30,5 +30,7 @@ dp.middleware.setup(LoggingMiddleware())
 
 admin_nav_context = FSMContextFactory(JSONStorage(config.navigation_storage))
 user_notify_context = FSMContextFactory(JSONStorage(config.notification_storage))
+
+from custom import *
 
 import app.handlers
