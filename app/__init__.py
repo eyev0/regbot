@@ -1,6 +1,7 @@
-import logging
-from datetime import datetime
 import argparse
+import logging
+import sys
+from datetime import datetime
 
 import pytz
 from aiogram import Bot, Dispatcher
@@ -20,17 +21,18 @@ parser.add_argument('-c', '--container', dest='container',
 args = parser.parse_args()
 config = Config(args.container, args.test_env)
 
-logging.basicConfig(filename=config.log_path,
-                    format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
-                    level=logging.INFO)
+file_handler = logging.FileHandler(config.log_path)
+stdout_handler = logging.StreamHandler(sys.stderr)
+# noinspection PyArgumentList
+logging.basicConfig(format=u'%(filename)s [ LINE:%(lineno)+3s ]#%(levelname)+8s [%(asctime)s]  %(message)s',
+                    level=logging.INFO,
+                    handlers=(file_handler, stdout_handler,))
 
 bot = Bot(token=config.TOKEN, proxy=config.PROXY_URL)
-dp = Dispatcher(bot, storage=JSONStorage(config.FSMstorage_path))
+dp = Dispatcher(bot, storage=config.states_storage)
 dp.middleware.setup(LoggingMiddleware())
 
-admin_nav_context = FSMContextFactory(JSONStorage(config.navigation_storage))
-user_notify_context = FSMContextFactory(JSONStorage(config.notification_storage))
-
-from custom import *
+admin_nav_context = FSMContextFactory(storage=config.navigation_storage)
+user_notify_context = FSMContextFactory(storage=config.notification_storage)
 
 import app.handlers

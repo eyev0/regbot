@@ -63,16 +63,14 @@ async def process_delete_user_command(message: types.Message):
 @dp.message_handler(state='*',
                     commands=['admin'])
 async def process_admin_command(message: types.Message):
-    magic_word = message.get_args()
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    if magic_word == 'pls':
-        if uid not in config.admin_ids:
-            config.admin_ids.append(uid)
+    if uid in config.check_admin:
+        if uid not in config.admins:
+            config.admins.append(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_enable'], reply=False)
-    elif magic_word == 'no':
-        if uid in config.admin_ids:
-            config.admin_ids.remove(uid)
+        else:
+            config.admins.remove(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_disable'], reply=False)
