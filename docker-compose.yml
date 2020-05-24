@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+    db:
+        image: 'postgres:alpine'
+        restart: always
+        environment:
+            - POSTGRES_USER=docker
+            - POSTGRES_PASSWORD=docker
+            - POSTGRES_DB=docker
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        ports:
+            - "15432:5432"
+        networks:
+            - regbot-net
+        deploy:
+            restart_policy:
+                condition: on-failure
+    redis:
+        image: 'redis:alpine'
+        command: redis-server --appendonly yes
+        restart: always
+        environment:
+            - POSTGRES_USER=docker
+            - POSTGRES_PASSWORD=docker
+            - POSTGRES_DB=docker
+        volumes:
+            - ./data/redis:/data
+        ports:
+            - "16379:6379"
+        networks:
+            - regbot-net
+        deploy:
+            restart_policy:
+                condition: on-failure
+    bot:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: regbot:latest
+        restart: always
+        volumes:
+            - ./data/vol:/vol
+        networks:
+            - regbot-net
+        depends_on:
+            - db
+            - redis
+        deploy:
+            restart_policy:
+                condition: on-failure
+
+networks:
+    regbot-net:
