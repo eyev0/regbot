@@ -28,8 +28,8 @@ class Config(object):
         self.db_password = 'docker'
         self.db_name = 'docker'
         if self.container:
-            self.db_host = 'postgres-' + APP_NAME
-            self.redis_host = 'redis-' + APP_NAME
+            self.db_host = 'db'
+            self.redis_host = 'redis'
             self.db_port = '5432'
             self.redis_port = '6379'
         else:
@@ -83,4 +83,4 @@ class Config(object):
 
     def __repr__(self):
         return f'Config(container={self.container}, test_env={self.test_env}, TOKEN={self.TOKEN}, ' \
-               f'PROXY_URL={self.PROXY_URL}, vol_dir={self.vol_path}, check_admin={self.check_admin})'
+               f'PROXY_URL={self.PROXY_URL}, check_admin={self.check_admin})'
