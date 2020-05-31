@@ -5,13 +5,13 @@ from aiogram import types
 from app import dp, bot, admin_nav_context, user_notify_context
 from app.db import session_scope, fetch_list
 from app.db.models import Event, User, Enrollment
-from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message, admin_lambda
-from app.handlers.keyboards import button_refresh, scroll_buttons_list, \
+from app.handlers.admin import send_enrollment_message, send_user_list_message, send_event_message
+from app.handlers.util.keyboards import button_refresh, scroll_buttons_list, \
     button_view_enrolls, status_buttons_list, button_publish, button_current_status, publish_buttons_list, \
     button_publish_edit, get_notifications_keyboard
 from app.handlers.messages import MESSAGES
 # view enrolls click
-from app.handlers.states import PublishStates, MenuStates
+from app.handlers.util.states import PublishStates, MenuStates
 
 
 @dp.callback_query_handler(lambda c: c.data == button_view_enrolls.callback_data,

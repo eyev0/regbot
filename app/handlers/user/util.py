@@ -1,12 +1,11 @@
-from aiogram import types
 from sqlalchemy import and_, or_
 
 from app import dp, bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
-from app.handlers.keyboards import events_reply_keyboard
+from app.handlers.util.keyboards import events_reply_keyboard
 from app.handlers.messages import MESSAGES
-from app.handlers.states import UserStates
+from app.handlers.util.states import UserStates
 
 
 async def show_event_list_task(uid,

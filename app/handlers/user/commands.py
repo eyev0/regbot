@@ -4,9 +4,9 @@ from aiogram.types import ParseMode, ReplyKeyboardRemove
 from app import dp
 from app.db import session_scope
 from app.db.models import User
-from app.handlers.lambdas import not_admin_lambda
+from app.handlers.util.lambdas import not_admin_lambda
 from app.handlers.messages import MESSAGES
-from app.handlers.states import UserStates
+from app.handlers.util.states import UserStates
 from app.handlers.user.util import show_event_list_task
 
 

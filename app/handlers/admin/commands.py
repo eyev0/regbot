@@ -3,11 +3,11 @@ from aiogram import types
 from app import dp, config
 from app.db import session_scope
 from app.db.models import Enrollment, User
-from app.handlers.states import MenuStates
+from app.handlers.util.states import MenuStates
 from app.handlers.admin import show_events_task_admin
-from app.handlers.keyboards import button_back_to_events
+from app.handlers.util.keyboards import button_back_to_events
 from app.handlers.messages import MESSAGES
-from app.handlers.lambdas import admin_lambda
+from app.handlers.util.lambdas import admin_lambda
 
 
 @dp.message_handler(lambda m: m.text == button_back_to_events.text,

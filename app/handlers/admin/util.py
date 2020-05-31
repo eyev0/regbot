@@ -8,7 +8,7 @@ from app import bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers import enrollment_str, keyboard_scroll, full_names_list_str, keyboard_refresh, event_str
-from app.handlers.keyboards import events_reply_keyboard, event_menu_keyboard
+from app.handlers.util.keyboards import events_reply_keyboard, event_menu_keyboard
 from app.handlers.messages import MESSAGES
 
 RANDOM_KITTEN_JPG = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Red_Kitten_01.jpg/' \

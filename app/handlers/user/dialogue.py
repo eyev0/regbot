@@ -8,9 +8,9 @@ from app import dp, clock, user_notify_context, bot
 from app.db import session_scope
 from app.db.models import Event, User, Enrollment
 from app.handlers.user import show_event_list_task
-from app.handlers.keyboards import button_enroll
+from app.handlers.util.keyboards import button_enroll
 from app.handlers.messages import MESSAGES
-from app.handlers.states import UserStates
+from app.handlers.util.states import UserStates
 
 
 @dp.message_handler(state=UserStates.USER_STATE_1,
