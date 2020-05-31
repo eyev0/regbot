@@ -1,3 +1,6 @@
+import functools
+
+from aiogram.dispatcher import FSMContext
 from aiogram.utils.helper import Helper, HelperMode, ListItem
 
 
@@ -39,3 +42,16 @@ class PublishStates(Helper):
 
     PUBLISH_STATE_0 = ListItem()
     PUBLISH_STATE_1 = ListItem()
+
+
+def resolve_state(func):
+    @functools.wraps(func)
+    async def decorator(*args, **kwargs):
+        result = await func(*args, **kwargs)
+
+        user_state: FSMContext = kwargs.get('user_state', None)
+        if user_state is not None:
+            await user_state.set_state(result)
+        return result
+
+    return decorator
