@@ -35,6 +35,6 @@ networks:
 
 volumes:
   dbdata:
-    name: salesboard-db
+    name: regbot-db
   redisdata:
-    name: salesboard-redis
+    name: regbot-redis
