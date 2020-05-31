@@ -1,55 +1,50 @@
 version: '3.7'
 
 services:
-    db:
-        image: 'postgres:alpine'
-        restart: always
-        environment:
-            - POSTGRES_USER=docker
-            - POSTGRES_PASSWORD=docker
-            - POSTGRES_DB=docker
-        volumes:
-            - ./data/db:/var/lib/postgresql/data
-        ports:
-            - "15432:5432"
-        networks:
-            - regbot-net
-        deploy:
-            restart_policy:
-                condition: on-failure
-    redis:
-        image: 'redis:alpine'
-        command: redis-server --appendonly yes
-        restart: always
-        environment:
-            - POSTGRES_USER=docker
-            - POSTGRES_PASSWORD=docker
-            - POSTGRES_DB=docker
-        volumes:
-            - ./data/redis:/data
-        ports:
-            - "16379:6379"
-        networks:
-            - regbot-net
-        deploy:
-            restart_policy:
-                condition: on-failure
     bot:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        build: https://github.com/edementyev/regbot.git
         image: regbot:latest
-        restart: always
-        volumes:
-            - ./data/vol:/vol
+        command: python3 ./app/bot.py
+        restart: 'no'
         networks:
-            - regbot-net
+            - network
+        volumes:
+            - ./log:/log
+            - ./config:/usr/src/app/config
         depends_on:
             - db
             - redis
-        deploy:
-            restart_policy:
-                condition: on-failure
+
+    db:
+        image: 'postgres:alpine'
+        restart: 'no'
+        environment:
+            - POSTGRES_USER=docker
+            - POSTGRES_PASSWORD=docker
+            - POSTGRES_DB=docker
+        volumes:
+            - dbdata:/var/lib/postgresql/data
+        networks:
+            - network
+
+    redis:
+        image: 'redis:alpine'
+        command: redis-server --appendonly yes
+        restart: 'no'
+        environment:
+            - POSTGRES_USER=docker
+            - POSTGRES_PASSWORD=docker
+            - POSTGRES_DB=docker
+        volumes:
+            - redisdata:/data
+        networks:
+            - network
 
 networks:
-    regbot-net:
+    network:
+
+volumes:
+    dbdata:
+        name: salesboard-db
+    redisdata:
+        name: salesboard-redis
