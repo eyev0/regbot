@@ -27,7 +27,7 @@ async def process_create_event_data(message: types.Message):
             await state.set_data({})
             await process_start_command_admin(message)
             return
-        state_data[state_number] = input_data
+        state_data[str(state_number)] = input_data
         await state.set_data(state_data)
 
     if state_number < len(CreateEventStates.all()) - 1:
@@ -38,9 +38,9 @@ async def process_create_event_data(message: types.Message):
                             reply_markup=keyboard_cancel)
     else:
         with session_scope() as session:
-            Event(title=state_data[1],
-                  description=state_data[2],
-                  access_info=state_data[3]) \
+            Event(title=state_data['1'],
+                  description=state_data['2'],
+                  access_info=state_data['3']) \
                 .insert_me(session)
         await message.reply(MESSAGES['create_event_done'],
                             reply=False)

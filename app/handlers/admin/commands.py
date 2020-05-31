@@ -65,12 +65,12 @@ async def process_delete_user_command(message: types.Message):
 async def process_admin_command(message: types.Message):
     uid = message.from_user.id
     state = dp.current_state(user=uid)
-    if uid in config.check_admin:
-        if uid not in config.admins:
-            config.admins.append(uid)
+    if uid in config.app.check_admins:
+        if uid not in config.app.admins:
+            config.app.admins.append(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_enable'], reply=False)
         else:
-            config.admins.remove(uid)
+            config.app.admins.remove(uid)
             await state.set_state(None)
             await message.reply(MESSAGES['admin_disable'], reply=False)
