@@ -11,7 +11,7 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
     ports:
-      - 45432:5432
+      - 55432:5432
     networks:
       - expose-network
 
@@ -26,7 +26,7 @@ services:
     volumes:
       - redisdata:/data
     ports:
-      - 46379:6379
+      - 56379:6379
     networks:
       - expose-network
 
